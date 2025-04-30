@@ -10,19 +10,30 @@ struct kernel_state {
 unsigned long long u_vreg_read(struct kernel_state *, unsigned int);
 struct kernel_state *u_vreg_write(struct kernel_state *, unsigned int, unsigned long long);
 unsigned long long u_cap_get_type(unsigned long long);
-unsigned long long u_cap_set_type(unsigned long long, unsigned long long);
-unsigned long long u_cap_mem_get_rwx(unsigned long long);
-_Bool u_cap_mem_get_lck(unsigned long long);
-unsigned long long u_cap_mem_get_tag(unsigned long long);
-unsigned long long u_cap_mem_get_bgn(unsigned long long);
-unsigned long long u_cap_mem_get_mrk(unsigned long long);
-unsigned long long u_cap_mem_get_end(unsigned long long);
-unsigned long long u_cap_mem_set_rwx(unsigned long long, unsigned long long);
-unsigned long long u_cap_mem_set_lck(unsigned long long, _Bool);
-unsigned long long u_cap_mem_set_tag(unsigned long long, unsigned long long);
-unsigned long long u_cap_mem_set_bgn(unsigned long long, unsigned long long);
-unsigned long long u_cap_mem_set_mrk(unsigned long long, unsigned long long);
-unsigned long long u_cap_mem_set_end(unsigned long long, unsigned long long);
+unsigned long long u_cap_mk_none(void);
+unsigned long long u_cap_mk_time(unsigned long long, unsigned long long, unsigned long long, unsigned long long);
+unsigned long long u_cap_time_get_hart(unsigned long long);
+unsigned long long u_cap_time_get_bgn(unsigned long long);
+unsigned long long u_cap_time_get_mrk(unsigned long long);
+unsigned long long u_cap_time_get_end(unsigned long long);
+unsigned long long u_cap_time_set_hart(unsigned long long, unsigned long long);
+unsigned long long u_cap_time_set_bgn(unsigned long long, unsigned long long);
+unsigned long long u_cap_time_set_mrk(unsigned long long, unsigned long long);
+unsigned long long u_cap_time_set_end(unsigned long long, unsigned long long);
+unsigned long long u_cap_mk_memory(unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long);
+unsigned long long u_cap_memory_get_rwx(unsigned long long);
+_Bool u_cap_memory_get_lck(unsigned long long);
+unsigned long long u_cap_memory_get_tag(unsigned long long);
+unsigned long long u_cap_memory_get_bgn(unsigned long long);
+unsigned long long u_cap_memory_get_mrk(unsigned long long);
+unsigned long long u_cap_memory_get_end(unsigned long long);
+unsigned long long u_cap_memory_set_rwx(unsigned long long, unsigned long long);
+unsigned long long u_cap_memory_set_lck(unsigned long long, _Bool);
+unsigned long long u_cap_memory_set_tag(unsigned long long, unsigned long long);
+unsigned long long u_cap_memory_set_bgn(unsigned long long, unsigned long long);
+unsigned long long u_cap_memory_set_mrk(unsigned long long, unsigned long long);
+unsigned long long u_cap_memory_set_end(unsigned long long, unsigned long long);
+unsigned long long u_cap_mk_pmp(unsigned long long, unsigned long long, unsigned long long, unsigned long long);
 unsigned long long u_cap_pmp_get_rwx(unsigned long long);
 _Bool u_cap_pmp_get_used(unsigned long long);
 unsigned long long u_cap_pmp_get_slot(unsigned long long);
@@ -31,6 +42,29 @@ unsigned long long u_cap_pmp_set_rwx(unsigned long long, unsigned long long);
 unsigned long long u_cap_pmp_set_used(unsigned long long, _Bool);
 unsigned long long u_cap_pmp_set_slot(unsigned long long, unsigned long long);
 unsigned long long u_cap_pmp_set_addr(unsigned long long, unsigned long long);
+unsigned long long u_cap_mk_monitor(unsigned long long, unsigned long long, unsigned long long);
+unsigned long long u_cap_monitor_get_bgn(unsigned long long);
+unsigned long long u_cap_monitor_get_mrk(unsigned long long);
+unsigned long long u_cap_monitor_get_end(unsigned long long);
+unsigned long long u_cap_monitor_set_bgn(unsigned long long, unsigned long long);
+unsigned long long u_cap_monitor_set_mrk(unsigned long long, unsigned long long);
+unsigned long long u_cap_monitor_set_end(unsigned long long, unsigned long long);
+unsigned long long u_cap_mk_channel(unsigned long long, unsigned long long, unsigned long long);
+unsigned long long u_cap_channel_get_bgn(unsigned long long);
+unsigned long long u_cap_channel_get_mrk(unsigned long long);
+unsigned long long u_cap_channel_get_end(unsigned long long);
+unsigned long long u_cap_channel_set_bgn(unsigned long long, unsigned long long);
+unsigned long long u_cap_channel_set_mrk(unsigned long long, unsigned long long);
+unsigned long long u_cap_channel_set_end(unsigned long long, unsigned long long);
+unsigned long long u_cap_mk_socket(unsigned long long, unsigned long long, unsigned long long, unsigned long long);
+unsigned long long u_cap_socket_get_mode(unsigned long long);
+unsigned long long u_cap_socket_get_perm(unsigned long long);
+unsigned long long u_cap_socket_get_chan(unsigned long long);
+unsigned long long u_cap_socket_get_tag(unsigned long long);
+unsigned long long u_cap_socket_set_mode(unsigned long long, unsigned long long);
+unsigned long long u_cap_socket_set_perm(unsigned long long, unsigned long long);
+unsigned long long u_cap_socket_set_chan(unsigned long long, unsigned long long);
+unsigned long long u_cap_socket_set_tag(unsigned long long, unsigned long long);
 _Bool u_ctable_is_empty_cap(struct kernel_state *, unsigned int);
 struct kernel_state *u_ctable_set_cap(struct kernel_state *, unsigned int, unsigned long long);
 struct kernel_state *u_ctable_set_next(struct kernel_state *, unsigned int, unsigned int);
@@ -68,12 +102,6 @@ int u_ERR_INVALID_CAPABILITY = 14;
 
 int u_CONTINUE = -1;
 
-unsigned long long u_CAPTY_NONE = 0LL;
-
-unsigned long long u_CAPTY_MEMORY = 2LL;
-
-unsigned long long u_CAPTY_PMP = 3LL;
-
 unsigned long long u_MIN_BLOCK_SIZE = 12LL;
 
 unsigned long long u_MAX_BLOCK_SIZE = 27LL;
@@ -97,114 +125,304 @@ struct kernel_state *u_vreg_write(struct kernel_state *$p_ks, unsigned int $p_ri
   return $i0;
 }
 
+unsigned long long u_CAPTY_NONE = 0LL;
+
+unsigned long long u_CAPTY_TIME = 1LL;
+
+unsigned long long u_CAPTY_MEMORY = 2LL;
+
+unsigned long long u_CAPTY_PMP = 3LL;
+
+unsigned long long u_CAPTY_MONITOR = 4LL;
+
+unsigned long long u_CAPTY_CHANNEL = 5LL;
+
+unsigned long long u_CAPTY_SOCKET = 6LL;
+
+unsigned long long u_CAPTY_COUNT = 7LL;
+
 unsigned long long u_cap_get_type(unsigned long long $p_cap)
 {
-  return $p_cap;
+  return $p_cap & 15LL;
 }
 
-unsigned long long u_cap_set_type(unsigned long long $p_cap, unsigned long long $p_v)
+unsigned long long u_cap_mk_none(void)
 {
-  return $p_cap;
+  return u_CAPTY_NONE;
 }
 
-unsigned long long u_cap_mem_get_rwx(unsigned long long $p_cap)
+unsigned long long u_cap_mk_time(unsigned long long $p_hart, unsigned long long $p_bgn, unsigned long long $p_mrk, unsigned long long $p_end)
 {
-  return 0LL;
+  return u_CAPTY_TIME | $p_end << 48LL | $p_mrk << 32LL | $p_bgn << 16LL
+           | $p_hart << 8LL;
 }
 
-_Bool u_cap_mem_get_lck(unsigned long long $p_cap)
+unsigned long long u_cap_time_get_hart(unsigned long long $p_cap)
 {
-  return 1;
+  return $p_cap >> 8LL & 255LL;
 }
 
-unsigned long long u_cap_mem_get_tag(unsigned long long $p_cap)
+unsigned long long u_cap_time_get_bgn(unsigned long long $p_cap)
 {
-  return 0LL;
+  return $p_cap >> 16LL & 65535LL;
 }
 
-unsigned long long u_cap_mem_get_bgn(unsigned long long $p_cap)
+unsigned long long u_cap_time_get_mrk(unsigned long long $p_cap)
 {
-  return 0LL;
+  return $p_cap >> 32LL & 65535LL;
 }
 
-unsigned long long u_cap_mem_get_mrk(unsigned long long $p_cap)
+unsigned long long u_cap_time_get_end(unsigned long long $p_cap)
 {
-  return 0LL;
+  return $p_cap >> 48LL & 65535LL;
 }
 
-unsigned long long u_cap_mem_get_end(unsigned long long $p_cap)
+unsigned long long u_cap_time_set_hart(unsigned long long $p_cap, unsigned long long $p_v)
 {
-  return 0LL;
+  return $p_cap & ~65280LL | $p_v << 8LL;
 }
 
-unsigned long long u_cap_mem_set_rwx(unsigned long long $p_cap, unsigned long long $p_v)
+unsigned long long u_cap_time_set_bgn(unsigned long long $p_cap, unsigned long long $p_v)
 {
-  return $p_cap;
+  return $p_cap & ~4294901760LL | $p_v << 16LL;
 }
 
-unsigned long long u_cap_mem_set_lck(unsigned long long $p_cap, _Bool $p_v)
+unsigned long long u_cap_time_set_mrk(unsigned long long $p_cap, unsigned long long $p_v)
 {
-  return $p_cap;
+  return $p_cap & ~281470681743360LL | $p_v << 32LL;
 }
 
-unsigned long long u_cap_mem_set_tag(unsigned long long $p_cap, unsigned long long $p_v)
+unsigned long long u_cap_time_set_end(unsigned long long $p_cap, unsigned long long $p_v)
 {
-  return $p_cap;
+  return $p_cap & ~-281474976710656LL | $p_v << 48LL;
 }
 
-unsigned long long u_cap_mem_set_bgn(unsigned long long $p_cap, unsigned long long $p_v)
+unsigned long long u_cap_mk_memory(unsigned long long $p_rwx, unsigned long long $p_lck, unsigned long long $p_tag, unsigned long long $p_bgn, unsigned long long $p_mrk, unsigned long long $p_end)
 {
-  return $p_cap;
+  return u_CAPTY_MEMORY | $p_end << 48LL | $p_mrk << 32LL | $p_bgn << 16LL
+           | $p_tag << 8LL | $p_lck << 7LL | $p_rwx << 4LL;
 }
 
-unsigned long long u_cap_mem_set_mrk(unsigned long long $p_cap, unsigned long long $p_v)
+unsigned long long u_cap_memory_get_rwx(unsigned long long $p_cap)
 {
-  return $p_cap;
+  return $p_cap >> 4LL & 7LL;
 }
 
-unsigned long long u_cap_mem_set_end(unsigned long long $p_cap, unsigned long long $p_v)
+_Bool u_cap_memory_get_lck(unsigned long long $p_cap)
 {
-  return $p_cap;
+  return (_Bool) ($p_cap >> 7LL & 1LL);
+}
+
+unsigned long long u_cap_memory_get_tag(unsigned long long $p_cap)
+{
+  return $p_cap >> 8LL & 255LL;
+}
+
+unsigned long long u_cap_memory_get_bgn(unsigned long long $p_cap)
+{
+  return $p_cap >> 16LL & 65535LL;
+}
+
+unsigned long long u_cap_memory_get_mrk(unsigned long long $p_cap)
+{
+  return $p_cap >> 32LL & 65535LL;
+}
+
+unsigned long long u_cap_memory_get_end(unsigned long long $p_cap)
+{
+  return $p_cap >> 48LL & 65535LL;
+}
+
+unsigned long long u_cap_memory_set_rwx(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~112LL | $p_v << 4LL;
+}
+
+unsigned long long u_cap_memory_set_lck(unsigned long long $p_cap, _Bool $p_v)
+{
+  return $p_cap & ~1LL | (unsigned long long) $p_v << 7LL;
+}
+
+unsigned long long u_cap_memory_set_tag(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~65280LL | $p_v << 8LL;
+}
+
+unsigned long long u_cap_memory_set_bgn(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~4294901760LL | $p_v << 16LL;
+}
+
+unsigned long long u_cap_memory_set_mrk(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~281470681743360LL | $p_v << 32LL;
+}
+
+unsigned long long u_cap_memory_set_end(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~-281474976710656LL | $p_v << 48LL;
+}
+
+unsigned long long u_cap_mk_pmp(unsigned long long $p_rwx, unsigned long long $p_used, unsigned long long $p_slot, unsigned long long $p_addr)
+{
+  return u_CAPTY_PMP | $p_addr << 16LL | $p_slot << 8LL | $p_used << 7LL
+           | $p_rwx << 4LL;
 }
 
 unsigned long long u_cap_pmp_get_rwx(unsigned long long $p_cap)
 {
-  return 0LL;
+  return $p_cap >> 4LL & 7LL;
 }
 
 _Bool u_cap_pmp_get_used(unsigned long long $p_cap)
 {
-  return 1;
+  return (_Bool) ($p_cap >> 7LL & 1LL);
 }
 
 unsigned long long u_cap_pmp_get_slot(unsigned long long $p_cap)
 {
-  return 0LL;
+  return $p_cap >> 8LL & 255LL;
 }
 
 unsigned long long u_cap_pmp_get_addr(unsigned long long $p_cap)
 {
-  return 0LL;
+  return $p_cap >> 16LL & 281474976710655LL;
 }
 
 unsigned long long u_cap_pmp_set_rwx(unsigned long long $p_cap, unsigned long long $p_v)
 {
-  return $p_cap;
+  return $p_cap & ~112LL | $p_v << 4LL;
 }
 
 unsigned long long u_cap_pmp_set_used(unsigned long long $p_cap, _Bool $p_v)
 {
-  return $p_cap;
+  return $p_cap & ~1LL | (unsigned long long) $p_v << 7LL;
 }
 
 unsigned long long u_cap_pmp_set_slot(unsigned long long $p_cap, unsigned long long $p_v)
 {
-  return $p_cap;
+  return $p_cap & ~65280LL | $p_v << 8LL;
 }
 
 unsigned long long u_cap_pmp_set_addr(unsigned long long $p_cap, unsigned long long $p_v)
 {
-  return $p_cap;
+  return $p_cap & ~-65536LL | $p_v << 16LL;
+}
+
+unsigned long long u_cap_mk_monitor(unsigned long long $p_bgn, unsigned long long $p_mrk, unsigned long long $p_end)
+{
+  return u_CAPTY_MONITOR | $p_end << 48LL | $p_mrk << 32LL | $p_bgn << 16LL;
+}
+
+unsigned long long u_cap_monitor_get_bgn(unsigned long long $p_cap)
+{
+  return $p_cap >> 16LL & 65535LL;
+}
+
+unsigned long long u_cap_monitor_get_mrk(unsigned long long $p_cap)
+{
+  return $p_cap >> 32LL & 65535LL;
+}
+
+unsigned long long u_cap_monitor_get_end(unsigned long long $p_cap)
+{
+  return $p_cap >> 48LL & 65535LL;
+}
+
+unsigned long long u_cap_monitor_set_bgn(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~4294901760LL | $p_v << 16LL;
+}
+
+unsigned long long u_cap_monitor_set_mrk(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~281470681743360LL | $p_v << 32LL;
+}
+
+unsigned long long u_cap_monitor_set_end(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~-281474976710656LL | $p_v << 48LL;
+}
+
+unsigned long long u_cap_mk_channel(unsigned long long $p_bgn, unsigned long long $p_mrk, unsigned long long $p_end)
+{
+  return u_CAPTY_CHANNEL | $p_end << 48LL | $p_mrk << 32LL | $p_bgn << 16LL;
+}
+
+unsigned long long u_cap_channel_get_bgn(unsigned long long $p_cap)
+{
+  return $p_cap >> 16LL & 65535LL;
+}
+
+unsigned long long u_cap_channel_get_mrk(unsigned long long $p_cap)
+{
+  return $p_cap >> 32LL & 65535LL;
+}
+
+unsigned long long u_cap_channel_get_end(unsigned long long $p_cap)
+{
+  return $p_cap >> 48LL & 65535LL;
+}
+
+unsigned long long u_cap_channel_set_bgn(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~4294901760LL | $p_v << 16LL;
+}
+
+unsigned long long u_cap_channel_set_mrk(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~281470681743360LL | $p_v << 32LL;
+}
+
+unsigned long long u_cap_channel_set_end(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~-281474976710656LL | $p_v << 48LL;
+}
+
+unsigned long long u_cap_mk_socket(unsigned long long $p_mode, unsigned long long $p_perm, unsigned long long $p_chan, unsigned long long $p_tag)
+{
+  return u_CAPTY_SOCKET | $p_tag << 32LL | $p_chan << 16LL | $p_perm << 8LL
+           | $p_mode << 4LL;
+}
+
+unsigned long long u_cap_socket_get_mode(unsigned long long $p_cap)
+{
+  return $p_cap >> 4LL & 15LL;
+}
+
+unsigned long long u_cap_socket_get_perm(unsigned long long $p_cap)
+{
+  return $p_cap >> 8LL & 255LL;
+}
+
+unsigned long long u_cap_socket_get_chan(unsigned long long $p_cap)
+{
+  return $p_cap >> 16LL & 65535LL;
+}
+
+unsigned long long u_cap_socket_get_tag(unsigned long long $p_cap)
+{
+  return $p_cap >> 32LL & 4294967295LL;
+}
+
+unsigned long long u_cap_socket_set_mode(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~240LL | $p_v << 4LL;
+}
+
+unsigned long long u_cap_socket_set_perm(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~65280LL | $p_v << 8LL;
+}
+
+unsigned long long u_cap_socket_set_chan(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~4294901760LL | $p_v << 16LL;
+}
+
+unsigned long long u_cap_socket_set_tag(unsigned long long $p_cap, unsigned long long $p_v)
+{
+  return $p_cap & ~-4294967296LL | $p_v << 32LL;
 }
 
 _Bool u_ctable_is_empty_cap(struct kernel_state *$p_ks, unsigned int $p_cid)
@@ -386,31 +604,31 @@ struct kernel_state *u_cap_revoke_memory(struct kernel_state *$p_ks, unsigned in
   $b24 = u_cap_get_type($u_ccap);
   $b23 = $b24 == u_CAPTY_MEMORY;
   if ($b23) {
-    $b21 = u_cap_mem_get_tag($u_pcap);
-    $b22 = u_cap_mem_get_tag($u_ccap);
+    $b21 = u_cap_memory_get_tag($u_pcap);
+    $b22 = u_cap_memory_get_tag($u_ccap);
     $b20 = $b21 == $b22;
   } else {
     $b20 = 0;
   }
   if ($b20) {
-    $b18 = u_cap_mem_get_bgn($u_pcap);
-    $b19 = u_cap_mem_get_bgn($u_ccap);
+    $b18 = u_cap_memory_get_bgn($u_pcap);
+    $b19 = u_cap_memory_get_bgn($u_ccap);
     $b17 = $b18 == $b19;
   } else {
     $b17 = 0;
   }
   if ($b17) {
     $u_ks = u_ctable_delete_cap($p_ks, $u_child);
-    $b0 = u_cap_mem_get_mrk($u_ccap);
-    $u_pcap = u_cap_mem_set_mrk($u_pcap, $b0);
-    $b1 = u_cap_mem_get_lck($u_ccap);
-    $u_pcap = u_cap_mem_set_lck($u_pcap, $b1);
+    $b0 = u_cap_memory_get_mrk($u_ccap);
+    $u_pcap = u_cap_memory_set_mrk($u_pcap, $b0);
+    $b1 = u_cap_memory_get_lck($u_ccap);
+    $u_pcap = u_cap_memory_set_lck($u_pcap, $b1);
     $u_ks = u_ctable_set_cap($u_ks, $p_parent, $u_pcap);
-    $b5 = u_cap_mem_get_mrk($u_pcap);
-    $b6 = u_cap_mem_get_bgn($u_pcap);
+    $b5 = u_cap_memory_get_mrk($u_pcap);
+    $b6 = u_cap_memory_get_bgn($u_pcap);
     $b4 = $b5 == $b6;
     if ($b4) {
-      $b3 = u_cap_mem_get_lck($u_pcap);
+      $b3 = u_cap_memory_get_lck($u_pcap);
       $b2 = !$b3;
     } else {
       $b2 = 0;
@@ -427,8 +645,8 @@ struct kernel_state *u_cap_revoke_memory(struct kernel_state *$p_ks, unsigned in
   } else {
     $b7 = u_cap_pmp_get_addr($u_ccap);
     $u_base = u_pmp_napot_decode_base($b7);
-    $b8 = u_cap_mem_get_tag($u_pcap);
-    $b9 = u_cap_mem_get_bgn($u_pcap);
+    $b8 = u_cap_memory_get_tag($u_pcap);
+    $b9 = u_cap_memory_get_bgn($u_pcap);
     $u_pcap_tag_addr = u_tag_block_to_addr($b8, $b9);
     $b16 = u_cap_get_type($u_ccap);
     $b15 = $b16 == u_CAPTY_PMP;
@@ -453,9 +671,9 @@ struct kernel_state *u_cap_revoke_memory(struct kernel_state *$p_ks, unsigned in
       $i2 = $u_ks;
       return $i2;
     } else {
-      $b13 = u_cap_mem_get_bgn($u_pcap);
-      $u_pcap = u_cap_mem_set_mrk($u_pcap, $b13);
-      $u_pcap = u_cap_mem_set_lck($u_pcap, 1);
+      $b13 = u_cap_memory_get_bgn($u_pcap);
+      $u_pcap = u_cap_memory_set_mrk($u_pcap, $b13);
+      $u_pcap = u_cap_memory_set_lck($u_pcap, 1);
       $u_ks = u_ctable_set_cap($p_ks, $p_parent, $u_pcap);
       (*$u_ks).errcode = u_SUCCESS;
       $i3 = $u_ks;
@@ -516,51 +734,51 @@ struct kernel_state *u_cap_derive_memory(struct kernel_state *$p_ks, unsigned in
   $b35 = u_cap_get_type($p_ncap);
   $b34 = $b35 == u_CAPTY_MEMORY;
   if ($b34) {
-    $b32 = u_cap_mem_get_tag($u_cap);
-    $b33 = u_cap_mem_get_tag($p_ncap);
+    $b32 = u_cap_memory_get_tag($u_cap);
+    $b33 = u_cap_memory_get_tag($p_ncap);
     $b31 = $b32 == $b33;
   } else {
     $b31 = 0;
   }
   if ($b31) {
-    $b29 = u_cap_mem_get_tag($u_cap);
-    $b30 = u_cap_mem_get_tag($p_ncap);
+    $b29 = u_cap_memory_get_tag($u_cap);
+    $b30 = u_cap_memory_get_tag($p_ncap);
     $b28 = $b29 == $b30;
   } else {
     $b28 = 0;
   }
   if ($b28) {
-    $b26 = u_cap_mem_get_mrk($u_cap);
-    $b27 = u_cap_mem_get_bgn($p_ncap);
+    $b26 = u_cap_memory_get_mrk($u_cap);
+    $b27 = u_cap_memory_get_bgn($p_ncap);
     $b25 = $b26 <= $b27;
   } else {
     $b25 = 0;
   }
   if ($b25) {
-    $b23 = u_cap_mem_get_end($p_ncap);
-    $b24 = u_cap_mem_get_end($u_cap);
+    $b23 = u_cap_memory_get_end($p_ncap);
+    $b24 = u_cap_memory_get_end($u_cap);
     $b22 = $b23 <= $b24;
   } else {
     $b22 = 0;
   }
   if ($b22) {
-    $b19 = u_cap_mem_get_rwx($p_ncap);
-    $b20 = u_cap_mem_get_rwx($u_cap);
+    $b19 = u_cap_memory_get_rwx($p_ncap);
+    $b20 = u_cap_memory_get_rwx($u_cap);
     $b18 = $b19 & $b20;
-    $b21 = u_cap_mem_get_rwx($p_ncap);
+    $b21 = u_cap_memory_get_rwx($p_ncap);
     $b17 = $b18 == $b21;
   } else {
     $b17 = 0;
   }
   if ($b17) {
-    $b16 = u_cap_mem_get_lck($u_cap);
+    $b16 = u_cap_memory_get_lck($u_cap);
     $b15 = !$b16;
   } else {
     $b15 = 0;
   }
   if ($b15) {
-    $b0 = u_cap_mem_get_end($p_ncap);
-    $u_cap = u_cap_mem_set_mrk($u_cap, $b0);
+    $b0 = u_cap_memory_get_end($p_ncap);
+    $u_cap = u_cap_memory_set_mrk($u_cap, $b0);
     $u_ks = u_ctable_set_cap($p_ks, $p_src, $u_cap);
     $u_ks = u_ctable_insert_cap($u_ks, $p_dst, $u_cap, $p_src);
     (*$u_ks).errcode = u_SUCCESS;
@@ -572,11 +790,11 @@ struct kernel_state *u_cap_derive_memory(struct kernel_state *$p_ks, unsigned in
     $b2 = u_cap_pmp_get_addr($p_ncap);
     $u_pmp_size = u_pmp_napot_decode_size($b2);
     $u_pmp_end = $u_pmp_begin + $u_pmp_size;
-    $b3 = u_cap_mem_get_tag($u_cap);
-    $b4 = u_cap_mem_get_mrk($u_cap);
+    $b3 = u_cap_memory_get_tag($u_cap);
+    $b4 = u_cap_memory_get_mrk($u_cap);
     $u_mem_mrk = u_tag_block_to_addr($b3, $b4);
-    $b5 = u_cap_mem_get_tag($u_cap);
-    $b6 = u_cap_mem_get_end($u_cap);
+    $b5 = u_cap_memory_get_tag($u_cap);
+    $b6 = u_cap_memory_get_end($u_cap);
     $u_mem_end = u_tag_block_to_addr($b5, $b6);
     $b14 = u_cap_get_type($p_ncap);
     $b13 = $b14 == u_CAPTY_PMP;
@@ -586,16 +804,16 @@ struct kernel_state *u_cap_derive_memory(struct kernel_state *$p_ks, unsigned in
       $b12 = 0;
     }
     if ($b12) {
-      $b9 = u_cap_mem_get_rwx($p_ncap);
-      $b10 = u_cap_mem_get_rwx($u_cap);
+      $b9 = u_cap_memory_get_rwx($p_ncap);
+      $b10 = u_cap_memory_get_rwx($u_cap);
       $b8 = $b9 & $b10;
-      $b11 = u_cap_mem_get_rwx($p_ncap);
+      $b11 = u_cap_memory_get_rwx($p_ncap);
       $b7 = $b8 == $b11;
     } else {
       $b7 = 0;
     }
     if ($b7) {
-      $u_cap = u_cap_mem_set_lck($u_cap, 1);
+      $u_cap = u_cap_memory_set_lck($u_cap, 1);
       $u_ks = u_ctable_set_cap($p_ks, $p_src, $u_cap);
       $u_ks = u_ctable_insert_cap($u_ks, $p_dst, $p_ncap, $p_src);
       (*$u_ks).errcode = u_SUCCESS;

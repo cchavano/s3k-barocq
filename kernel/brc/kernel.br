@@ -39,7 +39,6 @@ def vreg_write(ks: kernel_state, rid: u32, v: u64) : kernel_state =
   ks.vregs <- vregs;;
 
 (* Capability types *)
-
 def CAPTY_NONE : u64 = 0UL;;
 def CAPTY_TIME : u64 = 1UL;;
 def CAPTY_MEMORY : u64 = 2UL;;
@@ -47,175 +46,136 @@ def CAPTY_PMP : u64 = 3UL;;
 def CAPTY_MONITOR : u64 = 4UL;;
 def CAPTY_CHANNEL : u64 = 5UL;;
 def CAPTY_SOCKET : u64 = 6UL;;
+
+(* Number of capability types (incl. null cap) *)
 def CAPTY_COUNT : u64 = 7UL;;
 
-(* Getters and setters for capabilities *)
+(* Capability type *)
 def cap_get_type(cap: cap_t) : u64 = (cap & 0xfUL);;
 
+(* none capability *)
 def cap_mk_none() : u64 =
   CAPTY_NONE;;
 
+(* time capability *)
 def cap_mk_time(hart: u64, bgn: u64, mrk: u64, end: u64) : u64 =
-  CAPTY_TIME | end << 48 | mrk << 32 | bgn << 16 | hart << 8;;
-
+  CAPTY_TIME | end << 48UL | mrk << 32UL | bgn << 16UL | hart << 8UL;;
 def cap_time_get_hart(cap: cap_t) : u64 =
-  (cap >> 8) & 0xffUL;;
-
+  (cap >> 8UL) & 0xffUL;;
 def cap_time_get_bgn(cap: cap_t) : u64 =
-  (cap >> 16) & 0xffffUL;;
-
+  (cap >> 16UL) & 0xffffUL;;
 def cap_time_get_mrk(cap: cap_t) : u64 =
-  (cap >> 32) & 0xffffUL;;
-
+  (cap >> 32UL) & 0xffffUL;;
 def cap_time_get_end(cap: cap_t) : u64 =
-  (cap >> 48) & 0xffffUL;;
-
+  (cap >> 48UL) & 0xffffUL;;
 def cap_time_set_hart(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xff00UL) | (v << 8);;
-
+  (cap & ~0xff00UL) | (v << 8UL);;
 def cap_time_set_bgn(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff0000UL) | (v << 16);;
-
+  (cap & ~0xffff0000UL) | (v << 16UL);;
 def cap_time_set_mrk(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff00000000UL) | (v << 32);;
-
+  (cap & ~0xffff00000000UL) | (v << 32UL);;
 def cap_time_set_end(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff000000000000UL) | (v << 48);;
+  (cap & ~0xffff000000000000UL) | (v << 48UL);;
 
+(* memory capability *)
 def cap_mk_memory(rwx: u64, lck: u64, tag: u64, bgn: u64, mrk: u64, end: u64) : u64 =
-  CAPTY_MEMORY | end << 48 | mrk << 32 | bgn << 16 | tag << 8 | lck << 7 | rwx << 4;;
-
+  CAPTY_MEMORY | end << 48UL | mrk << 32UL | bgn << 16UL | tag << 8UL | lck << 7UL | rwx << 4UL;;
 def cap_memory_get_rwx(cap: cap_t) : u64 =
-  (cap >> 4) & 0x7UL;;
-
-def cap_memory_get_lck(cap: cap_t) : u64 =
-  (cap >> 7) & 0x1UL;;
-
+  (cap >> 4UL) & 0x7UL;;
+def cap_memory_get_lck(cap: cap_t) : bool =
+  ((cap >> 7UL) & 0x1UL) as bool;;
 def cap_memory_get_tag(cap: cap_t) : u64 =
-  (cap >> 8) & 0xffUL;;
-
+  (cap >> 8UL) & 0xffUL;;
 def cap_memory_get_bgn(cap: cap_t) : u64 =
-  (cap >> 16) & 0xffffUL;;
-
+  (cap >> 16UL) & 0xffffUL;;
 def cap_memory_get_mrk(cap: cap_t) : u64 =
-  (cap >> 32) & 0xffffUL;;
-
+  (cap >> 32UL) & 0xffffUL;;
 def cap_memory_get_end(cap: cap_t) : u64 =
-  (cap >> 48) & 0xffffUL;;
-
+  (cap >> 48UL) & 0xffffUL;;
 def cap_memory_set_rwx(cap: cap_t, v: u64) : u64 =
-  (cap & ~0x70UL) | (v << 4);;
-
-def cap_memory_set_lck(cap: cap_t, v: u64) : u64 =
-  (cap & ~0x80UL) | (v << 7);;
-
+  (cap & ~0x70UL) | (v << 4UL);;
+def cap_memory_set_lck(cap: cap_t, v: bool) : u64 =
+  (cap & ~0x1UL) | ((v as u64) << 7UL);;
 def cap_memory_set_tag(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xff00UL) | (v << 8);;
-
+  (cap & ~0xff00UL) | (v << 8UL);;
 def cap_memory_set_bgn(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff0000UL) | (v << 16);;
-
+  (cap & ~0xffff0000UL) | (v << 16UL);;
 def cap_memory_set_mrk(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff00000000UL) | (v << 32);;
-
+  (cap & ~0xffff00000000UL) | (v << 32UL);;
 def cap_memory_set_end(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff000000000000UL) | (v << 48);;
+  (cap & ~0xffff000000000000UL) | (v << 48UL);;
 
+(* pmp capability *)
 def cap_mk_pmp(rwx: u64, used: u64, slot: u64, addr: u64) : u64 =
-  CAPTY_PMP | addr << 16 | slot << 8 | used << 7 | rwx << 4;;
-
+  CAPTY_PMP | addr << 16UL | slot << 8UL | used << 7UL | rwx << 4UL;;
 def cap_pmp_get_rwx(cap: cap_t) : u64 =
-  (cap >> 4) & 0x7UL;;
-
-def cap_pmp_get_used(cap: cap_t) : u64 =
-  (cap >> 7) & 0x1UL;;
-
+  (cap >> 4UL) & 0x7UL;;
+def cap_pmp_get_used(cap: cap_t) : bool =
+  ((cap >> 7UL) & 0x1UL) as bool;;
 def cap_pmp_get_slot(cap: cap_t) : u64 =
-  (cap >> 8) & 0xffUL;;
-
+  (cap >> 8UL) & 0xffUL;;
 def cap_pmp_get_addr(cap: cap_t) : u64 =
-  (cap >> 16) & 0xffffffffffffUL;;
-
+  (cap >> 16UL) & 0xffffffffffffUL;;
 def cap_pmp_set_rwx(cap: cap_t, v: u64) : u64 =
-  (cap & ~0x70UL) | (v << 4);;
-
-def cap_pmp_set_used(cap: cap_t, v: u64) : u64 =
-  (cap & ~0x80UL) | (v << 7);;
-
+  (cap & ~0x70UL) | (v << 4UL);;
+def cap_pmp_set_used(cap: cap_t, v: bool) : u64 =
+  (cap & ~0x1UL) | ((v as u64) << 7UL);;
 def cap_pmp_set_slot(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xff00UL) | (v << 8);;
-
+  (cap & ~0xff00UL) | (v << 8UL);;
 def cap_pmp_set_addr(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffffffffffff0000UL) | (v << 16);;
+  (cap & ~0xffffffffffff0000UL) | (v << 16UL);;
 
+(* monitor capability *)
 def cap_mk_monitor(bgn: u64, mrk: u64, end: u64) : u64 =
-  CAPTY_MONITOR | end << 48 | mrk << 32 | bgn << 16;;
-
+  CAPTY_MONITOR | end << 48UL | mrk << 32UL | bgn << 16UL;;
 def cap_monitor_get_bgn(cap: cap_t) : u64 =
-  (cap >> 16) & 0xffffUL;;
-
+  (cap >> 16UL) & 0xffffUL;;
 def cap_monitor_get_mrk(cap: cap_t) : u64 =
-  (cap >> 32) & 0xffffUL;;
-
+  (cap >> 32UL) & 0xffffUL;;
 def cap_monitor_get_end(cap: cap_t) : u64 =
-  (cap >> 48) & 0xffffUL;;
-
+  (cap >> 48UL) & 0xffffUL;;
 def cap_monitor_set_bgn(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff0000UL) | (v << 16);;
-
+  (cap & ~0xffff0000UL) | (v << 16UL);;
 def cap_monitor_set_mrk(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff00000000UL) | (v << 32);;
-
+  (cap & ~0xffff00000000UL) | (v << 32UL);;
 def cap_monitor_set_end(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff000000000000UL) | (v << 48);;
+  (cap & ~0xffff000000000000UL) | (v << 48UL);;
 
+(* channel capability *)
 def cap_mk_channel(bgn: u64, mrk: u64, end: u64) : u64 =
-  CAPTY_CHANNEL | end << 48 | mrk << 32 | bgn << 16;;
-
+  CAPTY_CHANNEL | end << 48UL | mrk << 32UL | bgn << 16UL;;
 def cap_channel_get_bgn(cap: cap_t) : u64 =
-  (cap >> 16) & 0xffffUL;;
-
+  (cap >> 16UL) & 0xffffUL;;
 def cap_channel_get_mrk(cap: cap_t) : u64 =
-  (cap >> 32) & 0xffffUL;;
-
+  (cap >> 32UL) & 0xffffUL;;
 def cap_channel_get_end(cap: cap_t) : u64 =
-  (cap >> 48) & 0xffffUL;;
-
+  (cap >> 48UL) & 0xffffUL;;
 def cap_channel_set_bgn(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff0000UL) | (v << 16);;
-
+  (cap & ~0xffff0000UL) | (v << 16UL);;
 def cap_channel_set_mrk(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff00000000UL) | (v << 32);;
-
+  (cap & ~0xffff00000000UL) | (v << 32UL);;
 def cap_channel_set_end(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff000000000000UL) | (v << 48);;
+  (cap & ~0xffff000000000000UL) | (v << 48UL);;
 
+(* socket capability *)
 def cap_mk_socket(mode: u64, perm: u64, chan: u64, tag: u64) : u64 =
-  CAPTY_SOCKET | tag << 32 | chan << 16 | perm << 8 | mode << 4;;
-
+  CAPTY_SOCKET | tag << 32UL | chan << 16UL | perm << 8UL | mode << 4UL;;
 def cap_socket_get_mode(cap: cap_t) : u64 =
-  (cap >> 4) & 0xfUL;;
-
+  (cap >> 4UL) & 0xfUL;;
 def cap_socket_get_perm(cap: cap_t) : u64 =
-  (cap >> 8) & 0xffUL;;
-
+  (cap >> 8UL) & 0xffUL;;
 def cap_socket_get_chan(cap: cap_t) : u64 =
-  (cap >> 16) & 0xffffUL;;
-
+  (cap >> 16UL) & 0xffffUL;;
 def cap_socket_get_tag(cap: cap_t) : u64 =
-  (cap >> 32) & 0xffffffffUL;;
-
+  (cap >> 32UL) & 0xffffffffUL;;
 def cap_socket_set_mode(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xf0UL) | (v << 4);;
-
+  (cap & ~0xf0UL) | (v << 4UL);;
 def cap_socket_set_perm(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xff00UL) | (v << 8);;
-
+  (cap & ~0xff00UL) | (v << 8UL);;
 def cap_socket_set_chan(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff0000UL) | (v << 16);;
-
+  (cap & ~0xffff0000UL) | (v << 16UL);;
 def cap_socket_set_tag(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffffffff00000000UL) | (v << 32);;
+  (cap & ~0xffffffff00000000UL) | (v << 32UL);;
 
 (* Capability table library *)
 
@@ -280,28 +240,28 @@ def cap_revoke_memory(ks: kernel_state, parent: u32) : kernel_state =
   let child = ks.cnext[parent] in
   let ccap = ks.ctable[child] in
   if (cap_get_type(ccap) == CAPTY_MEMORY)
-    && (cap_mem_get_tag(pcap) == cap_mem_get_tag(ccap))
-    && (cap_mem_get_bgn(pcap) == cap_mem_get_bgn(ccap))
+    && (cap_memory_get_tag(pcap) == cap_memory_get_tag(ccap))
+    && (cap_memory_get_bgn(pcap) == cap_memory_get_bgn(ccap))
   then
     let ks = ctable_delete_cap(ks, child) in
-    let pcap = cap_mem_set_mrk(pcap, cap_mem_get_mrk(ccap)) in
-    let pcap = cap_mem_set_lck(pcap, cap_mem_get_lck(ccap)) in
+    let pcap = cap_memory_set_mrk(pcap, cap_memory_get_mrk(ccap)) in
+    let pcap = cap_memory_set_lck(pcap, cap_memory_get_lck(ccap)) in
     let ks = ctable_set_cap(ks, parent, pcap) in
-    if (cap_mem_get_mrk(pcap) == (cap_mem_get_bgn(pcap)))
-        && !(cap_mem_get_lck(pcap))
+    if (cap_memory_get_mrk(pcap) == (cap_memory_get_bgn(pcap)))
+        && !cap_memory_get_lck(pcap)
     then
       ks.errcode <- SUCCESS
     else
       ks.errcode <- CONTINUE
   else
     let base = pmp_napot_decode_base(cap_pmp_get_addr(ccap)) in
-    let pcap_tag_addr = tag_block_to_addr(cap_mem_get_tag(pcap), cap_mem_get_bgn(pcap)) in
+    let pcap_tag_addr = tag_block_to_addr(cap_memory_get_tag(pcap), cap_memory_get_bgn(pcap)) in
     if (cap_get_type(ccap) == CAPTY_PMP)
         && (pcap_tag_addr <= base)
     then
       let ks = ctable_delete_cap(ks, child) in
       let ks =
-        if (cap_pmp_get_used(ccap)) then
+        if cap_pmp_get_used(ccap) then
           let ks = vreg_write(ks, 0U, true as u64) in
           let ks = vreg_write(ks, 1U, cap_pid(child)) in
           vreg_write(ks, 2U, cap_pmp_get_slot(ccap))
@@ -310,22 +270,22 @@ def cap_revoke_memory(ks: kernel_state, parent: u32) : kernel_state =
       in
       ks.errcode <- CONTINUE
     else
-      let pcap = cap_mem_set_mrk(pcap, cap_mem_get_bgn(pcap)) in
-      let pcap = cap_mem_set_lck(pcap, true) in
+      let pcap = cap_memory_set_mrk(pcap, cap_memory_get_bgn(pcap)) in
+      let pcap = cap_memory_set_lck(pcap, true) in
       let ks = ctable_set_cap(ks, parent, pcap) in
       ks.errcode <- SUCCESS;;
 
 def cap_derive_memory(ks: kernel_state, src: u32, dst: u32, ncap: cap_t) : kernel_state =
   let cap = ks.ctable[src] in
   if (cap_get_type(ncap) == CAPTY_MEMORY)
-      && (cap_mem_get_tag(cap) == cap_mem_get_tag(ncap))
-      && (cap_mem_get_tag(cap) == cap_mem_get_tag(ncap))
-      && (cap_mem_get_mrk(cap) <= cap_mem_get_bgn(ncap))
-      && (cap_mem_get_end(ncap) <= cap_mem_get_end(cap))
-      && ((cap_mem_get_rwx(ncap) & cap_mem_get_rwx(cap)) == cap_mem_get_rwx(ncap))
-      && !(cap_mem_get_lck(cap))
+      && (cap_memory_get_tag(cap) == cap_memory_get_tag(ncap))
+      && (cap_memory_get_tag(cap) == cap_memory_get_tag(ncap))
+      && (cap_memory_get_mrk(cap) <= cap_memory_get_bgn(ncap))
+      && (cap_memory_get_end(ncap) <= cap_memory_get_end(cap))
+      && ((cap_memory_get_rwx(ncap) & cap_memory_get_rwx(cap)) == cap_memory_get_rwx(ncap))
+      && !cap_memory_get_lck(cap)
   then
-    let cap = cap_mem_set_mrk(cap, cap_mem_get_end(ncap)) in
+    let cap = cap_memory_set_mrk(cap, cap_memory_get_end(ncap)) in
     let ks = ctable_set_cap(ks, src, cap) in
     let ks = ctable_insert_cap(ks, dst, cap, src) in
     ks.errcode <- SUCCESS
@@ -333,13 +293,13 @@ def cap_derive_memory(ks: kernel_state, src: u32, dst: u32, ncap: cap_t) : kerne
     let pmp_begin = pmp_napot_decode_base(cap_pmp_get_addr(ncap)) in
     let pmp_size = pmp_napot_decode_size(cap_pmp_get_addr(ncap)) in
     let pmp_end = pmp_begin + pmp_size in
-    let mem_mrk = tag_block_to_addr(cap_mem_get_tag(cap), cap_mem_get_mrk(cap)) in
-    let mem_end = tag_block_to_addr(cap_mem_get_tag(cap), cap_mem_get_end(cap)) in
+    let mem_mrk = tag_block_to_addr(cap_memory_get_tag(cap), cap_memory_get_mrk(cap)) in
+    let mem_end = tag_block_to_addr(cap_memory_get_tag(cap), cap_memory_get_end(cap)) in
     if (cap_get_type(ncap) == CAPTY_PMP)
         && (mem_mrk <= pmp_begin)
-        && ((cap_mem_get_rwx(ncap) & cap_mem_get_rwx(cap)) == cap_mem_get_rwx(ncap))
+        && ((cap_memory_get_rwx(ncap) & cap_memory_get_rwx(cap)) == cap_memory_get_rwx(ncap))
     then
-      let cap = cap_mem_set_lck(cap, true) in
+      let cap = cap_memory_set_lck(cap, true) in
       let ks = ctable_set_cap(ks, src, cap) in
       let ks = ctable_insert_cap(ks, dst, ncap, src) in
       ks.errcode <- SUCCESS

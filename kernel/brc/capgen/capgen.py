@@ -71,7 +71,7 @@ class Capability:
             if field == "pad":
                 continue
             offset = self.offset(field)
-            builder += f" | {field} << {offset}"
+            builder += f" | {field} << {offset}UL"
         builder += ";;"
         output.append(builder)
         return "\n".join(output)
@@ -82,11 +82,18 @@ class Capability:
         offset = self.offset(field)
         mask = (1 << self.size(field)) - 1
         output = []
-        output.append(f"def cap_{name}_get_{field}(cap: cap_t) : u64 =")
-        if offset:
-            output.append(f"  (cap >> {offset}) & {hex(mask)}UL;;")
+        if self.size(field) == 1:
+            output.append(f"def cap_{name}_get_{field}(cap: cap_t) : bool =")
+            if offset:
+                output.append(f"  ((cap >> {offset}UL) & 0x1UL) as bool;;")
+            else:
+                output.append(f"  (cap & 0x1UL) as bool;;")
         else:
-            output.append(f"  (cap & {hex(mask)}UL);;")
+            output.append(f"def cap_{name}_get_{field}(cap: cap_t) : u64 =")
+            if offset:
+                output.append(f"  (cap >> {offset}UL) & {hex(mask)}UL;;")
+            else:
+                output.append(f"  (cap & {hex(mask)}UL);;")
         return "\n".join(output)
 
     def setter_fun(self, field):
@@ -95,23 +102,33 @@ class Capability:
         offset = self.offset(field)
         mask = (1 << self.size(field)) - 1
         output = []
-        output.append(f"def cap_{name}_set_{field}(cap: cap_t, v: u64) : u64 =")
-        if offset:
-            mask = mask << offset
-            output.append(f"  (cap & ~{hex(mask)}UL) | (v << {offset});;")
+        if self.size(field) == 1:
+            output.append(f"def cap_{name}_set_{field}(cap: cap_t, v: bool) : u64 =")
+            if offset:
+                output.append(f"  (cap & ~{hex(mask)}UL) | ((v as u64) << {offset}UL);;")
+            else:
+                output.append(f"  (cap & ~{hex(mask)}UL) | (v as u64);;")
         else:
-            output.append(f"  (cap & ~{hex(mask)}UL) | v;;")
+            output.append(f"def cap_{name}_set_{field}(cap: cap_t, v: u64) : u64 =")
+            if offset:
+                mask = mask << offset
+                output.append(f"  (cap & ~{hex(mask)}UL) | (v << {offset}UL);;")
+            else:
+                output.append(f"  (cap & ~{hex(mask)}UL) | v;;")
         return "\n".join(output)
 
 
 # Open the file and load the file
 def main(capabilities):
-    output = []
+    output = ["(* Capability types *)"]
     for i, cap in enumerate(capabilities):
         output.append(f"def CAPTY_{cap['name'].upper()} : u64 = {i}UL;;")
+    output.append("\n(* Number of capability types (incl. null cap) *)")
     output.append(f"def CAPTY_COUNT : u64 = {len(capabilities)}UL;;")
+    output.append("\n(* Capability type *)")
     output.append(f"def cap_get_type(cap: cap_t) : u64 = (cap & 0xfUL);;")
     for cap in capabilities:
+        output.append(f"\n(* {cap['name']} capability *)")
         capability = Capability(**cap)
         output.append(capability.constr_fun())
         for field in capability.fields():
