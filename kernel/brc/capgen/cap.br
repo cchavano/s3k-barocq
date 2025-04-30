@@ -1,0 +1,182 @@
+def CAPTY_NONE : u64 = 0UL;;
+
+def CAPTY_TIME : u64 = 1UL;;
+
+def CAPTY_MEMORY : u64 = 2UL;;
+
+def CAPTY_PMP : u64 = 3UL;;
+
+def CAPTY_MONITOR : u64 = 4UL;;
+
+def CAPTY_CHANNEL : u64 = 5UL;;
+
+def CAPTY_SOCKET : u64 = 6UL;;
+
+def CAPTY_COUNT : u64 = 7UL;;
+
+def cap_get_type(cap: cap_t) : u64 = (cap & 0xfUL);;
+
+def cap_mk_none() : u64 =
+  CAP_NONE;;
+
+def cap_mk_time(hart: u64, bgn: u64, mrk: u64, end: u64) : u64 =
+  CAP_TIME | end << 48 | mrk << 32 | bgn << 16 | hart << 8;;
+
+def cap_time_get_hart(cap: cap_t) : u64 =
+  (cap >> 8) & 0xffUL;;
+
+def cap_time_get_bgn(cap: cap_t) : u64 =
+  (cap >> 16) & 0xffffUL;;
+
+def cap_time_get_mrk(cap: cap_t) : u64 =
+  (cap >> 32) & 0xffffUL;;
+
+def cap_time_get_end(cap: cap_t) : u64 =
+  (cap >> 48) & 0xffffUL;;
+
+def cap_time_set_hart(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xff00UL) | (v << 8);;
+
+def cap_time_set_bgn(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffff0000UL) | (v << 16);;
+
+def cap_time_set_mrk(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffff00000000UL) | (v << 32);;
+
+def cap_time_set_end(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffff000000000000UL) | (v << 48);;
+
+def cap_mk_memory(rwx: u64, lck: u64, tag: u64, bgn: u64, mrk: u64, end: u64) : u64 =
+  CAP_MEMORY | end << 48 | mrk << 32 | bgn << 16 | tag << 8 | lck << 7 | rwx << 4;;
+
+def cap_memory_get_rwx(cap: cap_t) : u64 =
+  (cap >> 4) & 0x7UL;;
+
+def cap_memory_get_lck(cap: cap_t) : u64 =
+  (cap >> 7) & 0x1UL;;
+
+def cap_memory_get_tag(cap: cap_t) : u64 =
+  (cap >> 8) & 0xffUL;;
+
+def cap_memory_get_bgn(cap: cap_t) : u64 =
+  (cap >> 16) & 0xffffUL;;
+
+def cap_memory_get_mrk(cap: cap_t) : u64 =
+  (cap >> 32) & 0xffffUL;;
+
+def cap_memory_get_end(cap: cap_t) : u64 =
+  (cap >> 48) & 0xffffUL;;
+
+def cap_memory_set_rwx(cap: cap_t, v: u64) : u64 =
+  (cap & ~0x70UL) | (v << 4);;
+
+def cap_memory_set_lck(cap: cap_t, v: u64) : u64 =
+  (cap & ~0x80UL) | (v << 7);;
+
+def cap_memory_set_tag(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xff00UL) | (v << 8);;
+
+def cap_memory_set_bgn(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffff0000UL) | (v << 16);;
+
+def cap_memory_set_mrk(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffff00000000UL) | (v << 32);;
+
+def cap_memory_set_end(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffff000000000000UL) | (v << 48);;
+
+def cap_mk_pmp(rwx: u64, used: u64, slot: u64, addr: u64) : u64 =
+  CAP_PMP | addr << 16 | slot << 8 | used << 7 | rwx << 4;;
+
+def cap_pmp_get_rwx(cap: cap_t) : u64 =
+  (cap >> 4) & 0x7UL;;
+
+def cap_pmp_get_used(cap: cap_t) : u64 =
+  (cap >> 7) & 0x1UL;;
+
+def cap_pmp_get_slot(cap: cap_t) : u64 =
+  (cap >> 8) & 0xffUL;;
+
+def cap_pmp_get_addr(cap: cap_t) : u64 =
+  (cap >> 16) & 0xffffffffffffUL;;
+
+def cap_pmp_set_rwx(cap: cap_t, v: u64) : u64 =
+  (cap & ~0x70UL) | (v << 4);;
+
+def cap_pmp_set_used(cap: cap_t, v: u64) : u64 =
+  (cap & ~0x80UL) | (v << 7);;
+
+def cap_pmp_set_slot(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xff00UL) | (v << 8);;
+
+def cap_pmp_set_addr(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffffffffffff0000UL) | (v << 16);;
+
+def cap_mk_monitor(bgn: u64, mrk: u64, end: u64) : u64 =
+  CAP_MONITOR | end << 48 | mrk << 32 | bgn << 16;;
+
+def cap_monitor_get_bgn(cap: cap_t) : u64 =
+  (cap >> 16) & 0xffffUL;;
+
+def cap_monitor_get_mrk(cap: cap_t) : u64 =
+  (cap >> 32) & 0xffffUL;;
+
+def cap_monitor_get_end(cap: cap_t) : u64 =
+  (cap >> 48) & 0xffffUL;;
+
+def cap_monitor_set_bgn(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffff0000UL) | (v << 16);;
+
+def cap_monitor_set_mrk(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffff00000000UL) | (v << 32);;
+
+def cap_monitor_set_end(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffff000000000000UL) | (v << 48);;
+
+def cap_mk_channel(bgn: u64, mrk: u64, end: u64) : u64 =
+  CAP_CHANNEL | end << 48 | mrk << 32 | bgn << 16;;
+
+def cap_channel_get_bgn(cap: cap_t) : u64 =
+  (cap >> 16) & 0xffffUL;;
+
+def cap_channel_get_mrk(cap: cap_t) : u64 =
+  (cap >> 32) & 0xffffUL;;
+
+def cap_channel_get_end(cap: cap_t) : u64 =
+  (cap >> 48) & 0xffffUL;;
+
+def cap_channel_set_bgn(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffff0000UL) | (v << 16);;
+
+def cap_channel_set_mrk(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffff00000000UL) | (v << 32);;
+
+def cap_channel_set_end(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffff000000000000UL) | (v << 48);;
+
+def cap_mk_socket(mode: u64, perm: u64, chan: u64, tag: u64) : u64 =
+  CAP_SOCKET | tag << 32 | chan << 16 | perm << 8 | mode << 4;;
+
+def cap_socket_get_mode(cap: cap_t) : u64 =
+  (cap >> 4) & 0xfUL;;
+
+def cap_socket_get_perm(cap: cap_t) : u64 =
+  (cap >> 8) & 0xffUL;;
+
+def cap_socket_get_chan(cap: cap_t) : u64 =
+  (cap >> 16) & 0xffffUL;;
+
+def cap_socket_get_tag(cap: cap_t) : u64 =
+  (cap >> 32) & 0xffffffffUL;;
+
+def cap_socket_set_mode(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xf0UL) | (v << 4);;
+
+def cap_socket_set_perm(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xff00UL) | (v << 8);;
+
+def cap_socket_set_chan(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffff0000UL) | (v << 16);;
+
+def cap_socket_set_tag(cap: cap_t, v: u64) : u64 =
+  (cap & ~0xffffffff00000000UL) | (v << 32);;

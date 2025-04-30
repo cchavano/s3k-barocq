@@ -1,4 +1,5 @@
 docs
+.ccls-cache
 *.a
 *.da
 *.o
