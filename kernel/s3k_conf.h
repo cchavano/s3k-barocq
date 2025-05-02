@@ -1,8 +1,3 @@
-#pragma once
-
-#define PLATFORM_VIRT
-#include "plat/config.h"
-
 // Number of user processes
 #define S3K_PROC_CNT 2
 
@@ -20,7 +15,3 @@
 
 // Scheduler time
 #define S3K_SCHED_TIME (S3K_SLOT_LEN / 10)
-
-// If debugging, comment
-//#define NDEBUG
-#define VERBOSITY 0

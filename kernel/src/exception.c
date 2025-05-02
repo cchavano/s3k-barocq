@@ -12,23 +12,23 @@
 static proc_t *_exception_delegate(proc_t *proc, uint64_t mcause,
 				   uint64_t mtval)
 {
-	proc->regs[REG_ECAUSE] = mcause;
-	proc->regs[REG_EVAL] = mtval;
-	proc->regs[REG_EPC] = proc->regs[REG_PC];
-	proc->regs[REG_ESP] = proc->regs[REG_SP];
-	proc->regs[REG_PC] = proc->regs[REG_TPC];
-	proc->regs[REG_SP] = proc->regs[REG_TSP];
+	proc->regs.ecause = mcause;
+	proc->regs.eval = mtval;
+	proc->regs.epc = proc->regs.pc;
+	proc->regs.esp = proc->regs.sp;
+	proc->regs.pc = proc->regs.tpc;
+	proc->regs.sp = proc->regs.tsp;
 	return proc;
 }
 
 static proc_t *_exception_trap_return(proc_t *proc)
 {
-	proc->regs[REG_PC] = proc->regs[REG_EPC];
-	proc->regs[REG_SP] = proc->regs[REG_ESP];
-	proc->regs[REG_ECAUSE] = 0;
-	proc->regs[REG_EVAL] = 0;
-	proc->regs[REG_EPC] = 0;
-	proc->regs[REG_ESP] = 0;
+	proc->regs.pc = proc->regs.epc;
+	proc->regs.sp = proc->regs.esp;
+	proc->regs.ecause = 0;
+	proc->regs.eval = 0;
+	proc->regs.epc = 0;
+	proc->regs.esp = 0;
 	return proc;
 }
 

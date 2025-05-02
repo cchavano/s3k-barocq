@@ -1,8 +1,6 @@
 #include "kernel.h"
 
-#include "altc/init.h"
-#include "cap_lock.h"
-#include "cap_table.h"
+#include "cap/table.h"
 #include "csr.h"
 #include "kassert.h"
 #include "proc.h"
@@ -10,12 +8,6 @@
 
 void kernel_init(void)
 {
-	alt_init();
-	kprintf(0, "# uart initialized\n");
-#ifdef SMP
-	cap_lock_init();
-	kprintf(0, "# capability lock initialized\n");
-#endif
 	ctable_init();
 	kprintf(0, "# ctable initialized\n");
 	sched_init();

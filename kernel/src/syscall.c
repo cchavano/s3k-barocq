@@ -1,17 +1,15 @@
 /* See LICENSE file for copyright and license details. */
 #include "syscall.h"
 
-#include "cap_ipc.h"
-#include "cap_lock.h"
-#include "cap_monitor.h"
-#include "cap_ops.h"
-#include "cap_pmp.h"
-#include "cap_table.h"
-#include "cap_types.h"
-#include "cap_util.h"
+#include "cap/ipc.h"
+#include "cap/monitor.h"
+#include "cap/ops.h"
+#include "cap/pmp.h"
+#include "cap/table.h"
+#include "cap/util.h"
 #include "csr.h"
-#include "drivers/time.h"
-#include "error.h"
+#include "rtc.h"
+#include "types.h"
 #include "kernel.h"
 #include "sched.h"
 #include "trap.h"
@@ -102,49 +100,24 @@ validator_t validators[] = {
 proc_t *syscall_handler(proc_t *proc)
 {
 	// System call arguments.
-	const sys_args_t *args = (sys_args_t *)&proc->regs[REG_A0];
-	uint64_t call = proc->regs[REG_T0];
+	const sys_args_t *args = (sys_args_t *)&proc->regs.a0;
+	uint64_t call = proc->regs.t0;
 
 	// Validate system call arguments.
 	err_t err = ERR_INVALID_SYSCALL;
 	if (call < ARRAY_SIZE(validators))
 		err = validators[call](args);
 
-#ifndef SMP /* Single core */
 	if (err) {
 		// Increment PC
-		proc->regs[REG_PC] += 4;
-		proc->regs[REG_T0] = err;
+		proc->regs.pc += 4;
+		proc->regs.t0 = err;
 	} else if (kernel_preempt()) {
 		proc = NULL;
 	} else {
-		proc->regs[REG_PC] += 4;
+		proc->regs.pc += 4;
 		proc = handlers[call](proc, args);
 	}
-#else /* Multicore */
-	if (err) {
-		// Invalid parameters
-		proc->regs[REG_PC] += 4;
-		proc->regs[REG_T0] = err;
-	} else if (kernel_preempt()) {
-		// Kernel preemption
-		proc = NULL;
-	} else if (call < SYS_CAP_MOVE) {
-		// These system calls do not require a lock
-		proc->regs[REG_PC] += 4;
-		proc = handlers[call](proc, args);
-	} else if (cap_lock_acquire()) {
-		// These system calls requires a lock
-		proc->regs[REG_PC] += 4;
-		proc = handlers[call](proc, args);
-		cap_lock_release();
-	} else {
-		// Lock acquire failed due to preemption
-		proc->regs[REG_PC] += 4;
-		proc->regs[REG_T0] = ERR_PREEMPTED;
-		proc = NULL;
-	}
-#endif
 	return proc;
 }
 
@@ -163,9 +136,10 @@ static bool valid_pid(pid_t pid)
 	return pid < S3K_PROC_CNT;
 }
 
-static bool valid_reg(reg_t reg)
+static bool valid_reg(word_t reg)
 {
-	return reg < REG_CNT;
+	size_t reg_count = sizeof(regs_t) / sizeof(word_t);
+	return reg < reg_count;
 }
 
 err_t validate_get_info(const sys_args_t *args)
@@ -177,18 +151,18 @@ proc_t *handle_get_info(proc_t *const p, const sys_args_t *args)
 {
 	switch (args->get_info.info) {
 	case 0:
-		p->regs[REG_A0] = p->pid;
+		p->regs.a0 = p->pid;
 		break;
 	case 1:
-		p->regs[REG_A0] = time_get();
+		p->regs.a0 = rtc_time_get();
 		break;
 	case 2:
-		p->regs[REG_A0] = timeout_get(csrr(mhartid));
+		p->regs.a0 = rtc_timeout_get(csrr(mhartid));
 		break;
 	default:
-		p->regs[REG_A0] = 0;
+		p->regs.a0 = 0;
 	}
-	p->regs[REG_T0] = SUCCESS;
+	p->regs.t0 = SUCCESS;
 	return p;
 }
 
@@ -201,8 +175,9 @@ err_t validate_reg_read(const sys_args_t *args)
 
 proc_t *handle_reg_read(proc_t *const p, const sys_args_t *args)
 {
-	p->regs[REG_T0] = SUCCESS;
-	p->regs[REG_A0] = p->regs[args->reg_read.reg];
+	p->regs.t0 = SUCCESS;
+	word_t *regs = (word_t *)&p->regs;
+	p->regs.a0 = regs[args->reg_read.reg];
 	return p;
 }
 
@@ -215,8 +190,9 @@ err_t validate_reg_write(const sys_args_t *args)
 
 proc_t *handle_reg_write(proc_t *const p, const sys_args_t *args)
 {
-	p->regs[REG_T0] = SUCCESS;
-	p->regs[args->reg_write.reg] = args->reg_write.val;
+	p->regs.t0 = SUCCESS;
+	word_t *regs = (word_t *)&p->regs;
+	regs[args->reg_write.reg] = args->reg_write.val;
 	return p;
 }
 
@@ -244,7 +220,7 @@ err_t validate_sleep(const sys_args_t *args)
 
 proc_t *handle_sleep(proc_t *const p, const sys_args_t *args)
 {
-	p->regs[REG_T0] = SUCCESS;
+	p->regs.t0 = SUCCESS;
 	if (args->sleep.time)
 		p->timeout = args->sleep.time;
 	return NULL;
@@ -260,7 +236,7 @@ err_t validate_cap_read(const sys_args_t *args)
 proc_t *handle_cap_read(proc_t *const p, const sys_args_t *args)
 {
 	cte_t c = ctable_get(p->pid, args->cap_read.idx);
-	p->regs[REG_T0] = cap_read(c, (cap_t *)&p->regs[REG_A0]);
+	p->regs.t0 = cap_read(c, (cap_t *)&p->regs.a0);
 	return p;
 }
 
@@ -277,7 +253,7 @@ proc_t *handle_cap_move(proc_t *const p, const sys_args_t *args)
 {
 	cte_t src = ctable_get(p->pid, args->cap_move.src_idx);
 	cte_t dst = ctable_get(p->pid, args->cap_move.dst_idx);
-	p->regs[REG_T0] = cap_move(src, dst);
+	p->regs.t0 = cap_move(src, dst);
 	return p;
 }
 
@@ -291,7 +267,7 @@ err_t validate_cap_delete(const sys_args_t *args)
 proc_t *handle_cap_delete(proc_t *const p, const sys_args_t *args)
 {
 	cte_t c = ctable_get(p->pid, args->cap_delete.idx);
-	p->regs[REG_T0] = cap_delete(c);
+	p->regs.t0 = cap_delete(c);
 	return p;
 }
 
@@ -306,8 +282,8 @@ proc_t *handle_cap_revoke(proc_t *const p, const sys_args_t *args)
 {
 	cte_t c = ctable_get(p->pid, args->cap_revoke.idx);
 
-	p->regs[REG_T0] = cap_revoke(c);
-	return p->regs[REG_T0] == ERR_PREEMPTED ? NULL : p;
+	p->regs.t0 = cap_revoke(c);
+	return p->regs.t0 == ERR_PREEMPTED ? NULL : p;
 }
 
 err_t validate_cap_derive(const sys_args_t *args)
@@ -327,7 +303,7 @@ proc_t *handle_cap_derive(proc_t *const p, const sys_args_t *args)
 	cte_t src = ctable_get(p->pid, args->cap_derive.src_idx);
 	cte_t dst = ctable_get(p->pid, args->cap_derive.dst_idx);
 	cap_t cap = {.raw = args->cap_derive.cap_raw};
-	p->regs[REG_T0] = cap_derive(src, dst, cap);
+	p->regs.t0 = cap_derive(src, dst, cap);
 	return p;
 }
 
@@ -343,7 +319,7 @@ err_t validate_pmp_load(const sys_args_t *args)
 proc_t *handle_pmp_load(proc_t *const p, const sys_args_t *args)
 {
 	cte_t pmp = ctable_get(p->pid, args->pmp_load.idx);
-	p->regs[REG_T0] = cap_pmp_load(pmp, args->pmp_load.slot);
+	p->regs.t0 = cap_pmp_load(pmp, args->pmp_load.slot);
 	return p;
 }
 
@@ -357,7 +333,7 @@ err_t validate_pmp_unload(const sys_args_t *args)
 proc_t *handle_pmp_unload(proc_t *const p, const sys_args_t *args)
 {
 	cte_t pmp = ctable_get(p->pid, args->pmp_unload.idx);
-	p->regs[REG_T0] = cap_pmp_unload(pmp);
+	p->regs.t0 = cap_pmp_unload(pmp);
 	return p;
 }
 
@@ -373,7 +349,7 @@ err_t validate_mon_suspend(const sys_args_t *args)
 proc_t *handle_mon_suspend(proc_t *const p, const sys_args_t *args)
 {
 	cte_t mon = ctable_get(p->pid, args->mon_state.mon_idx);
-	p->regs[REG_T0] = cap_monitor_suspend(mon, args->mon_state.pid);
+	p->regs.t0 = cap_monitor_suspend(mon, args->mon_state.pid);
 	return p;
 }
 
@@ -389,7 +365,7 @@ err_t validate_mon_resume(const sys_args_t *args)
 proc_t *handle_mon_resume(proc_t *const p, const sys_args_t *args)
 {
 	cte_t mon = ctable_get(p->pid, args->mon_state.mon_idx);
-	p->regs[REG_T0] = cap_monitor_resume(mon, args->mon_state.pid);
+	p->regs.t0 = cap_monitor_resume(mon, args->mon_state.pid);
 	return p;
 }
 
@@ -405,8 +381,8 @@ err_t validate_mon_state_get(const sys_args_t *args)
 proc_t *handle_mon_state_get(proc_t *const p, const sys_args_t *args)
 {
 	cte_t mon = ctable_get(p->pid, args->mon_state.mon_idx);
-	p->regs[REG_T0] = cap_monitor_state_get(
-	    mon, args->mon_state.pid, (proc_state_t *)&p->regs[REG_A0]);
+	p->regs.t0 = cap_monitor_state_get(
+	    mon, args->mon_state.pid, (proc_state_t *)&p->regs.a0);
 	return p;
 }
 
@@ -423,7 +399,7 @@ proc_t *handle_mon_yield(proc_t *const p, const sys_args_t *args)
 {
 	cte_t mon = ctable_get(p->pid, args->mon_state.mon_idx);
 	proc_t *next = p;
-	p->regs[REG_T0] = cap_monitor_yield(mon, args->mon_state.pid, &next);
+	p->regs.t0 = cap_monitor_yield(mon, args->mon_state.pid, &next);
 	return next;
 }
 
@@ -441,9 +417,9 @@ err_t validate_mon_reg_read(const sys_args_t *args)
 proc_t *handle_mon_reg_read(proc_t *const p, const sys_args_t *args)
 {
 	cte_t mon = ctable_get(p->pid, args->mon_reg_read.mon_idx);
-	p->regs[REG_T0] = cap_monitor_reg_read(mon, args->mon_reg_read.pid,
+	p->regs.t0 = cap_monitor_reg_read(mon, args->mon_reg_read.pid,
 					       args->mon_reg_read.reg,
-					       &p->regs[REG_A0]);
+					       &p->regs.a0);
 	return p;
 }
 
@@ -461,7 +437,7 @@ err_t validate_mon_reg_write(const sys_args_t *args)
 proc_t *handle_mon_reg_write(proc_t *const p, const sys_args_t *args)
 {
 	cte_t mon = ctable_get(p->pid, args->mon_reg_write.mon_idx);
-	p->regs[REG_T0] = cap_monitor_reg_write(mon, args->mon_reg_write.pid,
+	p->regs.t0 = cap_monitor_reg_write(mon, args->mon_reg_write.pid,
 						args->mon_reg_write.reg,
 						args->mon_reg_write.val);
 	return p;
@@ -482,8 +458,8 @@ proc_t *handle_mon_cap_read(proc_t *const p, const sys_args_t *args)
 {
 	cte_t mon = ctable_get(p->pid, args->mon_cap_read.mon_idx);
 	cte_t src = ctable_get(args->mon_cap_read.pid, args->mon_cap_read.idx);
-	p->regs[REG_T0]
-	    = cap_monitor_cap_read(mon, src, (cap_t *)&p->regs[REG_A0]);
+	p->regs.t0
+	    = cap_monitor_cap_read(mon, src, (cap_t *)&p->regs.a0);
 	return p;
 }
 
@@ -509,7 +485,7 @@ proc_t *handle_mon_cap_move(proc_t *const p, const sys_args_t *args)
 			       args->mon_cap_move.src_idx);
 	cte_t dst = ctable_get(args->mon_cap_move.dst_pid,
 			       args->mon_cap_move.dst_idx);
-	p->regs[REG_T0] = cap_monitor_cap_move(mon, src, dst);
+	p->regs.t0 = cap_monitor_cap_move(mon, src, dst);
 	return p;
 }
 
@@ -530,7 +506,7 @@ proc_t *handle_mon_pmp_load(proc_t *const p, const sys_args_t *args)
 {
 	cte_t mon = ctable_get(p->pid, args->mon_pmp_load.mon_idx);
 	cte_t pmp = ctable_get(args->mon_pmp_load.pid, args->mon_pmp_load.idx);
-	p->regs[REG_T0]
+	p->regs.t0
 	    = cap_monitor_pmp_load(mon, pmp, args->mon_pmp_load.slot);
 	return p;
 }
@@ -551,7 +527,7 @@ proc_t *handle_mon_pmp_unload(proc_t *const p, const sys_args_t *args)
 	cte_t mon = ctable_get(p->pid, args->mon_pmp_unload.mon_idx);
 	cte_t pmp
 	    = ctable_get(args->mon_pmp_unload.pid, args->mon_pmp_unload.idx);
-	p->regs[REG_T0] = cap_monitor_pmp_unload(mon, pmp);
+	p->regs.t0 = cap_monitor_pmp_unload(mon, pmp);
 	return p;
 }
 
@@ -574,7 +550,7 @@ proc_t *handle_sock_send(proc_t *const p, const sys_args_t *args)
 		     args->sock.data[3]},
 	};
 	proc_t *next = p;
-	p->regs[REG_T0] = cap_sock_send(sock, &msg, &next);
+	p->regs.t0 = cap_sock_send(sock, &msg, &next);
 	return next;
 }
 
@@ -592,7 +568,7 @@ proc_t *handle_sock_recv(proc_t *const p, const sys_args_t *args)
 	cte_t sock = ctable_get(p->pid, args->sock.sock_idx);
 	cte_t cap_buf = ctable_get(p->pid, args->sock.cap_idx);
 	proc_t *next = p;
-	p->regs[REG_T0] = cap_sock_recv(sock, cap_buf, &next);
+	p->regs.t0 = cap_sock_recv(sock, cap_buf, &next);
 	return next;
 }
 
@@ -615,6 +591,6 @@ proc_t *handle_sock_sendrecv(proc_t *const p, const sys_args_t *args)
 		     args->sock.data[3]},
 	};
 	proc_t *next = p;
-	p->regs[REG_T0] = cap_sock_sendrecv(sock, &msg, &next);
+	p->regs.t0 = cap_sock_sendrecv(sock, &msg, &next);
 	return next;
 }

@@ -1,0 +1,3 @@
+option('platdir', type : 'string', value : '', description : 'Platform directory')
+option('plat', type : 'string', value : 'qemu_virt', description : 'Platform name')
+option('nprocs', type : 'integer', min : 1, value : 1, description : 'Number of cores')
