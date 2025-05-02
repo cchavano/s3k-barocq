@@ -1,13 +1,13 @@
 #pragma once
 #include "types.h"
 
-cap_t cap_mk_time(hart_t hart, time_slot_t bgn, time_slot_t end);
-cap_t cap_mk_memory(addr_t bgn, addr_t end, rwx_t rwx);
-cap_t cap_mk_pmp(napot_t addr, rwx_t rwx);
-cap_t cap_mk_monitor(pid_t bgn, pid_t end);
-cap_t cap_mk_channel(chan_t bgn, chan_t end);
-cap_t cap_mk_socket(chan_t chan, ipc_mode_t mode, ipc_perm_t perm,
-		    uint32_t tag);
+void cap_mk_time(cap_t *cap, hart_t hart, time_slot_t bgn, time_slot_t end);
+void cap_mk_memory(cap_t *cap, addr_t bgn, addr_t end, rwx_t rwx);
+void cap_mk_pmp(cap_t *cap, napot_t addr, rwx_t rwx);
+void cap_mk_monitor(cap_t *cap, pid_t bgn, pid_t end);
+void cap_mk_channel(cap_t *cap, chan_t bgn, chan_t end);
+void cap_mk_socket(cap_t *cap, chan_t chan, ipc_mode_t mode, ipc_perm_t perm,
+		   uint32_t tag);
 
 static inline addr_t tag_block_to_addr(tag_t tag, block_t block)
 {
@@ -15,5 +15,5 @@ static inline addr_t tag_block_to_addr(tag_t tag, block_t block)
 	       + ((uint64_t)block << MIN_BLOCK_SIZE);
 }
 
-bool cap_is_valid(const cap_t cap);
-void cap_snprint(char *restrict buf, size_t size, cap_t cap);
+bool cap_is_valid(const cap_t *cap);
+void cap_print(const cap_t *cap);

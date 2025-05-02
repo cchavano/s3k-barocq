@@ -3,11 +3,11 @@
 #include "sched.h"
 
 #include "csr.h"
-#include "rtc.h"
 #include "kassert.h"
 #include "kernel.h"
 #include "kprint.h"
 #include "proc.h"
+#include "rtc.h"
 #include "trap.h"
 #include "wfi.h"
 
@@ -43,8 +43,6 @@ void sched_init(void)
 void sched_update(uint64_t pid, uint64_t end, uint64_t hart, uint64_t from,
 		  uint64_t to)
 {
-	kprintf(1, "# sched_update(pid=%D,end=%D,hart=%D,from=%D,to=%D)\n", pid,
-		end, hart, from, to);
 	hart -= S3K_MIN_HART;
 	int offset = hart * 16;
 	uint64_t mask = 0xFFFFull << offset;
@@ -56,7 +54,6 @@ void sched_update(uint64_t pid, uint64_t end, uint64_t hart, uint64_t from,
 
 void sched_delete(uint64_t hart, uint64_t from, uint64_t to)
 {
-	kprintf(1, "# sched_delete(hart=%D,from=%D,to=%D)\n", hart, from, to);
 	hart -= S3K_MIN_HART;
 	int offset = hart * 16;
 	uint64_t mask = 0xFFFFull << offset;
@@ -64,20 +61,20 @@ void sched_delete(uint64_t hart, uint64_t from, uint64_t to)
 		slots[i] &= ~mask;
 }
 
-static slot_info_t slot_info_get(uint64_t hart, uint64_t slot)
+static void slot_info_get(uint64_t hart, uint64_t slot, slot_info_t *si)
 {
 	uint64_t entry = slots[slot % S3K_SLOT_CNT]
 			 >> (hart - S3K_MIN_HART) * 16;
-	uint64_t pid = (entry >> 8) & 0xFF;
-	uint64_t length = entry & 0xFF;
-	return (slot_info_t){.pid = pid, .length = length};
+	si->pid = (entry >> 8) & 0xFF;
+	si->length = entry & 0xFF;
 }
 
 static proc_t *sched_fetch(uint64_t hart, uint64_t slot)
 {
 	proc_t *proc = NULL;
+	slot_info_t si;
 	// Get time slot information
-	slot_info_t si = slot_info_get(hart, slot);
+	slot_info_get(hart, slot, &si);
 
 	// If length = 0, then slice is deleted.
 	if (si.length == 0)
@@ -92,8 +89,6 @@ static proc_t *sched_fetch(uint64_t hart, uint64_t slot)
 	}
 
 	// Get the process.
-	kprintf(2, "# sched(hart=%d,pid=%d,slot=%D)\n", hart, si.pid,
-		slot % S3K_SLOT_CNT);
 	proc->timeout = (slot + si.length) * S3K_SLOT_LEN - S3K_SCHED_TIME;
 fail:
 	return proc;
@@ -102,7 +97,7 @@ fail:
 proc_t *sched(void)
 {
 	// Hart ID
-	uint64_t hart = csrr(mhartid);
+	uint64_t hart = csrr_mhartid();
 	// Time slot
 	uint64_t slot;
 	// Process to schedule

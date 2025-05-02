@@ -4,7 +4,8 @@
 err_t cap_pmp_load(cte_t pmp, pmp_slot_t slot)
 {
 	proc_t *proc = proc_get(cte_pid(pmp));
-	cap_t cap = cte_cap(pmp);
+	cap_t cap;
+	cte_cap(pmp, &cap);
 	if (cap.type == CAPTY_NONE)
 		return ERR_EMPTY;
 	if (cap.type != CAPTY_PMP || cap.pmp.used)
@@ -15,14 +16,15 @@ err_t cap_pmp_load(cte_t pmp, pmp_slot_t slot)
 	proc_pmp_load(proc, slot, cap.pmp.rwx, cap.pmp.addr);
 	cap.pmp.slot = slot;
 	cap.pmp.used = 1;
-	cte_set_cap(pmp, cap);
+	cte_set_cap(pmp, &cap);
 	return SUCCESS;
 }
 
 err_t cap_pmp_unload(cte_t pmp)
 {
 	proc_t *proc = proc_get(cte_pid(pmp));
-	cap_t cap = cte_cap(pmp);
+	cap_t cap;
+	cte_cap(pmp, &cap);
 
 	if (cap.type == CAPTY_NONE)
 		return ERR_EMPTY;
@@ -32,6 +34,6 @@ err_t cap_pmp_unload(cte_t pmp)
 	proc_pmp_unload(proc, cap.pmp.slot);
 	cap.pmp.slot = 0;
 	cap.pmp.used = 0;
-	cte_set_cap(pmp, cap);
+	cte_set_cap(pmp, &cap);
 	return SUCCESS;
 }

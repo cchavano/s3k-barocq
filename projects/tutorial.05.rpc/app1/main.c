@@ -1,10 +1,9 @@
+#include "../../tutorial-commons/utils.h"
 #include "altc/altio.h"
 #include "altc/string.h"
 #include "s3k/s3k.h"
 
 #include <stdint.h>
-
-#include "../../tutorial-commons/utils.h"
 
 int main(void)
 {
@@ -22,8 +21,8 @@ int main(void)
 		} while (reply.err);
 		alt_puts((char *)reply.data);
 		count++;
-		for (int i=0; i<1000000; i++) {
+		for (int i = 0; i < 1000000; i++) {
 			x += 1;
-		}	
+		}
 	}
 }

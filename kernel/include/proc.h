@@ -10,7 +10,7 @@
  * @copyright MIT License
  */
 
- #include "types.h"
+#include "types.h"
 
 typedef word_t proc_state_t;
 

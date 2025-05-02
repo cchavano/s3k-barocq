@@ -1,11 +1,9 @@
+#include "../../tutorial-commons/utils.h"
 #include "altc/altio.h"
 #include "s3k/s3k.h"
 
-#include "../../tutorial-commons/utils.h"
-
 char trap_stack[1024];
 void trap_handler(void) __attribute__((interrupt("machine")));
-
 
 void trap_handler(void)
 {

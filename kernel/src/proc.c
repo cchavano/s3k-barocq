@@ -3,8 +3,8 @@
 
 #include "cap/pmp.h"
 #include "csr.h"
-#include "rtc.h"
 #include "kassert.h"
+#include "rtc.h"
 
 static proc_t procs[S3K_PROC_CNT];
 extern unsigned char _payload[];
@@ -57,8 +57,9 @@ void proc_release(proc_t *proc)
 
 void proc_suspend(proc_t *proc)
 {
-	proc_state_t prev
-	    = __atomic_fetch_or(&proc->state, PSF_SUSPENDED, __ATOMIC_RELAXED);
+	proc_state_t prev = proc->state;
+	proc->state |= PSF_SUSPENDED;
+
 	if (prev & PSF_BLOCKED) {
 		proc->state = PSF_SUSPENDED;
 		proc->regs.t0 = ERR_SUSPENDED;
@@ -69,7 +70,7 @@ void proc_resume(proc_t *proc)
 {
 	if (proc->state == PSF_SUSPENDED)
 		proc->timeout = 0;
-	__atomic_fetch_and(&proc->state, ~PSF_SUSPENDED, __ATOMIC_RELAXED);
+	proc->state &= ~PSF_SUSPENDED;
 }
 
 void proc_ipc_wait(proc_t *proc, chan_t chan)
@@ -114,13 +115,13 @@ void proc_pmp_unload(proc_t *proc, pmp_slot_t slot)
 
 void proc_pmp_sync(proc_t *proc)
 {
-	csrw(pmpaddr0, proc->pmp.addr[0]);
-	csrw(pmpaddr1, proc->pmp.addr[1]);
-	csrw(pmpaddr2, proc->pmp.addr[2]);
-	csrw(pmpaddr3, proc->pmp.addr[3]);
-	csrw(pmpaddr4, proc->pmp.addr[4]);
-	csrw(pmpaddr5, proc->pmp.addr[5]);
-	csrw(pmpaddr6, proc->pmp.addr[6]);
-	csrw(pmpaddr7, proc->pmp.addr[7]);
-	csrw(pmpcfg0, *(uint64_t *)proc->pmp.cfg);
+	csrw_pmpaddr0(proc->pmp.addr[0]);
+	csrw_pmpaddr1(proc->pmp.addr[1]);
+	csrw_pmpaddr2(proc->pmp.addr[2]);
+	csrw_pmpaddr3(proc->pmp.addr[3]);
+	csrw_pmpaddr4(proc->pmp.addr[4]);
+	csrw_pmpaddr5(proc->pmp.addr[5]);
+	csrw_pmpaddr6(proc->pmp.addr[6]);
+	csrw_pmpaddr7(proc->pmp.addr[7]);
+	csrw_pmpcfg0(*(uint64_t *)proc->pmp.cfg);
 }

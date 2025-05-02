@@ -1,9 +1,7 @@
+#include "../../tutorial-commons/utils.h"
 #include "altc/altio.h"
 #include "altc/string.h"
 #include "s3k/s3k.h"
-
-#include "../../tutorial-commons/utils.h"
-
 
 int main(void)
 {
@@ -36,7 +34,7 @@ int main(void)
 			if (reply.err == S3K_ERR_TIMEOUT)
 				alt_puts("0> timeout");
 		} while (reply.err);
-		for (int i=0; i<100; i++) {
+		for (int i = 0; i < 100; i++) {
 			x += 1;
 		}
 		alt_puts((char *)reply.data);

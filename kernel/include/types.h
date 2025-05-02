@@ -1,9 +1,9 @@
 #pragma once
 
-#include <stdint.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <limits.h>
+#include <stdint.h>
 
 // Min logarithmic size of a memory slice
 #define MIN_BLOCK_SIZE 12
@@ -196,8 +196,6 @@ typedef union {
 	} sock;
 } sys_args_t;
 
-
-
 typedef enum {
 	MEM_NONE = 0,
 	MEM_R = 0x1,
@@ -264,7 +262,8 @@ typedef union cap {
 		rwx_t rwx : 3;
 		bool used : 1;
 		pmp_slot_t slot;
-		napot_t addr : 48;
+		uint16_t _padding;
+		uint32_t addr;
 	} pmp;
 
 	struct {

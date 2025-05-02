@@ -9,29 +9,16 @@
 #define VERBOSITY 0
 #endif
 
-void _kputc(char c) __attribute__((weak));
+extern void kputc(char c);
 
-void _kputc(char)
-{
-}
-
-static void _kputs(const char *s)
+void kputs(const char *s)
 {
 	while (*s != '\0') {
-		_kputc(*s++);
+		kputc(*s++);
 	}
 }
 
-void kputs(unsigned int level, const char *s)
+void kprintf(const char *restrict fmt, ...)
 {
-
-	if (level > VERBOSITY)
-		return;
-	_kputs(s);
-}
-
-void kprintf(unsigned int level, const char *restrict fmt, ...)
-{
-	/* TODO PRINTF */
-	kputs(level, fmt);
+	kputs(fmt);
 }

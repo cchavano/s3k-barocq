@@ -8,11 +8,11 @@
 #include "cap/table.h"
 #include "cap/util.h"
 #include "csr.h"
-#include "rtc.h"
-#include "types.h"
 #include "kernel.h"
+#include "rtc.h"
 #include "sched.h"
 #include "trap.h"
+#include "types.h"
 
 #include <stdbool.h>
 
@@ -157,7 +157,7 @@ proc_t *handle_get_info(proc_t *const p, const sys_args_t *args)
 		p->regs.a0 = rtc_time_get();
 		break;
 	case 2:
-		p->regs.a0 = rtc_timeout_get(csrr(mhartid));
+		p->regs.a0 = rtc_timeout_get(csrr_mhartid());
 		break;
 	default:
 		p->regs.a0 = 0;
@@ -283,7 +283,7 @@ proc_t *handle_cap_revoke(proc_t *const p, const sys_args_t *args)
 	cte_t c = ctable_get(p->pid, args->cap_revoke.idx);
 
 	p->regs.t0 = cap_revoke(c);
-	return p->regs.t0 == ERR_PREEMPTED ? NULL : p;
+	return p->regs.t0 == ERR_PREEMPTED ? (proc_t *)NULL : p;
 }
 
 err_t validate_cap_derive(const sys_args_t *args)
@@ -293,7 +293,7 @@ err_t validate_cap_derive(const sys_args_t *args)
 	if (!valid_idx(args->cap_derive.dst_idx))
 		return ERR_INVALID_INDEX;
 	cap_t cap = {.raw = args->cap_derive.cap_raw};
-	if (!cap_is_valid(cap))
+	if (!cap_is_valid(&cap))
 		return ERR_INVALID_DERIVATION;
 	return SUCCESS;
 }
@@ -303,7 +303,7 @@ proc_t *handle_cap_derive(proc_t *const p, const sys_args_t *args)
 	cte_t src = ctable_get(p->pid, args->cap_derive.src_idx);
 	cte_t dst = ctable_get(p->pid, args->cap_derive.dst_idx);
 	cap_t cap = {.raw = args->cap_derive.cap_raw};
-	p->regs.t0 = cap_derive(src, dst, cap);
+	p->regs.t0 = cap_derive(src, dst, &cap);
 	return p;
 }
 
@@ -381,8 +381,8 @@ err_t validate_mon_state_get(const sys_args_t *args)
 proc_t *handle_mon_state_get(proc_t *const p, const sys_args_t *args)
 {
 	cte_t mon = ctable_get(p->pid, args->mon_state.mon_idx);
-	p->regs.t0 = cap_monitor_state_get(
-	    mon, args->mon_state.pid, (proc_state_t *)&p->regs.a0);
+	p->regs.t0 = cap_monitor_state_get(mon, args->mon_state.pid,
+					   (proc_state_t *)&p->regs.a0);
 	return p;
 }
 
@@ -418,8 +418,7 @@ proc_t *handle_mon_reg_read(proc_t *const p, const sys_args_t *args)
 {
 	cte_t mon = ctable_get(p->pid, args->mon_reg_read.mon_idx);
 	p->regs.t0 = cap_monitor_reg_read(mon, args->mon_reg_read.pid,
-					       args->mon_reg_read.reg,
-					       &p->regs.a0);
+					  args->mon_reg_read.reg, &p->regs.a0);
 	return p;
 }
 
@@ -438,8 +437,8 @@ proc_t *handle_mon_reg_write(proc_t *const p, const sys_args_t *args)
 {
 	cte_t mon = ctable_get(p->pid, args->mon_reg_write.mon_idx);
 	p->regs.t0 = cap_monitor_reg_write(mon, args->mon_reg_write.pid,
-						args->mon_reg_write.reg,
-						args->mon_reg_write.val);
+					   args->mon_reg_write.reg,
+					   args->mon_reg_write.val);
 	return p;
 }
 
@@ -458,8 +457,7 @@ proc_t *handle_mon_cap_read(proc_t *const p, const sys_args_t *args)
 {
 	cte_t mon = ctable_get(p->pid, args->mon_cap_read.mon_idx);
 	cte_t src = ctable_get(args->mon_cap_read.pid, args->mon_cap_read.idx);
-	p->regs.t0
-	    = cap_monitor_cap_read(mon, src, (cap_t *)&p->regs.a0);
+	p->regs.t0 = cap_monitor_cap_read(mon, src, (cap_t *)&p->regs.a0);
 	return p;
 }
 
@@ -506,8 +504,7 @@ proc_t *handle_mon_pmp_load(proc_t *const p, const sys_args_t *args)
 {
 	cte_t mon = ctable_get(p->pid, args->mon_pmp_load.mon_idx);
 	cte_t pmp = ctable_get(args->mon_pmp_load.pid, args->mon_pmp_load.idx);
-	p->regs.t0
-	    = cap_monitor_pmp_load(mon, pmp, args->mon_pmp_load.slot);
+	p->regs.t0 = cap_monitor_pmp_load(mon, pmp, args->mon_pmp_load.slot);
 	return p;
 }
 

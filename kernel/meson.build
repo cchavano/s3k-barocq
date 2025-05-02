@@ -6,10 +6,16 @@ project(
 	default_options : [
 		'buildtype=debug',
 		'warning_level=2',
-		'c_std=c11',
+		'c_std=c99',
 		'b_ndebug=if-release',
 	],
 )
+
+if get_option('platdir') == ''
+	platdir = meson.current_source_dir() / 'plat' / get_option('plat')
+else
+	platdir = get_option('platdir') / get_option('plat')
+endif
 
 sources = files(
 	'src/head.S',
@@ -30,28 +36,23 @@ sources = files(
 	'src/syscall.c',
 	'src/trap.c',
 	'src/rtc.c',
+	'src/csr.c',
+	platdir / 'plat.c',
 )
 
 include_directories = include_directories(
 	'include',
 )
 
-if get_option('platdir') == ''
-	platdir = meson.current_source_dir() / 'plat' / get_option('plat')
-else
-	platdir = get_option('platdir') / get_option('plat')
-endif
-
 c_args = [
 	'-ffreestanding',
-	'-fno-stack-protector',
-	'-fno-builtin',
-	'-fno-omit-frame-pointer',
 	'-include', platdir / 'config.h',
 	'-include', 's3k_conf.h',
 ]
 
 link_args = [
+	'-nostartfiles',
+	'-nodefaultlibs',
 	'-nostdlib',
 	'-T', platdir / 'linker.ld',
 ]

@@ -1,9 +1,6 @@
+#include "../../tutorial-commons/utils.h"
 #include "altc/altio.h"
 #include "s3k/s3k.h"
-
-#include "../../tutorial-commons/utils.h"
-
-
 
 int main(void)
 {
@@ -20,11 +17,10 @@ int main(void)
 	setup_scheduling(PARALLEL);
 
 	// Start app1
-	log_sys("10", s3k_mon_resume(MONITOR, APP1_PID)); 
+	log_sys("10", s3k_mon_resume(MONITOR, APP1_PID));
 
 	while (1)
 		alt_puts("0");
-
 
 	// BYE!
 	alt_puts("bye from app0");

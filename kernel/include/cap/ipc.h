@@ -1,8 +1,8 @@
 #pragma once
 
-#include "types.h"
 #include "cap/table.h"
 #include "proc.h"
+#include "types.h"
 
 #include <stdint.h>
 
@@ -15,4 +15,4 @@ typedef struct ipc_msg {
 err_t cap_sock_send(cte_t sock, const ipc_msg_t *msg, proc_t **next);
 err_t cap_sock_recv(cte_t sock, const cte_t cap_buf, proc_t **next);
 err_t cap_sock_sendrecv(cte_t sock, const ipc_msg_t *msg, proc_t **next);
-void cap_sock_clear(cap_t cap, proc_t *next);
+void cap_sock_clear(const cap_t *cap, proc_t *next);

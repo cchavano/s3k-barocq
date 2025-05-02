@@ -3,11 +3,11 @@
 #include "cap/ops.h"
 #include "cap/table.h"
 #include "csr.h"
-#include "rtc.h"
 #include "kassert.h"
 #include "kernel.h"
 #include "macro.h"
 #include "proc.h"
+#include "rtc.h"
 
 #define SERVER 0
 #define CLIENT 1
@@ -18,13 +18,13 @@ struct {
 	cte_t cap_buf;
 } channels[S3K_CHAN_CNT];
 
-static err_t do_send(cap_t cap, const ipc_msg_t *msg, proc_t **next)
+static err_t do_send(const cap_t *cap, const ipc_msg_t *msg, proc_t **next)
 {
-	bool is_server = (cap.sock.tag == 0);
-	cte_t cap_buf = channels[cap.sock.chan].cap_buf;
+	bool is_server = (cap->sock.tag == 0);
+	cte_t cap_buf = channels[cap->sock.chan].cap_buf;
 
 	uint64_t curr_time = rtc_time_get();
-	uint64_t timeout = rtc_timeout_get(csrr(mhartid));
+	uint64_t timeout = rtc_timeout_get(csrr_mhartid());
 
 	if (curr_time >= timeout) {
 		return ERR_PREEMPTED;
@@ -33,38 +33,38 @@ static err_t do_send(cap_t cap, const ipc_msg_t *msg, proc_t **next)
 	proc_t *recv;
 
 	if (is_server) {
-		recv = channels[cap.sock.chan].client;
+		recv = channels[cap->sock.chan].client;
 		if (!recv)
 			return ERR_NO_RECEIVER;
-		channels[cap.sock.chan].client = NULL;
+		channels[cap->sock.chan].client = NULL;
 	} else {
-		recv = channels[cap.sock.chan].server;
+		recv = channels[cap->sock.chan].server;
 		if (!recv)
 			return ERR_NO_RECEIVER;
-		if (cap.sock.mode == IPC_YIELD
+		if (cap->sock.mode == IPC_YIELD
 		    && curr_time + recv->regs.servtime >= timeout)
 			return ERR_NO_RECEIVER;
 	}
 
-	if (proc_ipc_acquire(recv, cap.sock.chan)) {
+	if (proc_ipc_acquire(recv, cap->sock.chan)) {
 		recv->regs.t0 = SUCCESS;
-		recv->regs.a0 = cap.sock.tag;
+		recv->regs.a0 = cap->sock.tag;
 		recv->regs.a2 = msg->data[0];
 		recv->regs.a3 = msg->data[1];
 		recv->regs.a4 = msg->data[2];
 		recv->regs.a5 = msg->data[3];
 
 		if (msg->send_cap) {
-			recv->regs.a1 = cte_cap(msg->cap_buf).raw;
 			cap_move(msg->cap_buf, cap_buf);
+			cte_cap(cap_buf, (cap_t *)&recv->regs.a1);
 		} else {
 			recv->regs.a1 = 0;
 		}
 
-		if (cap.sock.mode == IPC_YIELD) {
+		if (cap->sock.mode == IPC_YIELD) {
 			recv->timeout = (*next)->timeout;
 			*next = recv;
-		} else if (cap.sock.mode == IPC_NOYIELD) {
+		} else if (cap->sock.mode == IPC_NOYIELD) {
 			recv->timeout = 0;
 			proc_release(recv);
 		} else {
@@ -75,38 +75,40 @@ static err_t do_send(cap_t cap, const ipc_msg_t *msg, proc_t **next)
 	return ERR_NO_RECEIVER;
 }
 
-static void do_recv(cap_t cap, cte_t cap_buf, proc_t *recv)
+static void do_recv(const cap_t *cap, cte_t cap_buf, proc_t *recv)
 {
-	bool is_server = (cap.sock.tag == 0);
+	bool is_server = (cap->sock.tag == 0);
 	if (is_server) {
-		channels[cap.sock.chan].server = recv;
-		channels[cap.sock.chan].cap_buf = cap_buf;
+		channels[cap->sock.chan].server = recv;
+		channels[cap->sock.chan].cap_buf = cap_buf;
 		recv->timeout = UINT64_MAX;
-		proc_ipc_wait(recv, cap.sock.chan);
+		proc_ipc_wait(recv, cap->sock.chan);
 	} else {
-		channels[cap.sock.chan].client = recv;
-		channels[cap.sock.chan].cap_buf = cap_buf;
-		if (cap.sock.mode == IPC_NOYIELD)
+		channels[cap->sock.chan].client = recv;
+		channels[cap->sock.chan].cap_buf = cap_buf;
+		if (cap->sock.mode == IPC_NOYIELD)
 			recv->timeout = UINT64_MAX;
-		proc_ipc_wait(recv, cap.sock.chan);
+		proc_ipc_wait(recv, cap->sock.chan);
 	}
 }
 
-static err_t reply(cte_t sock, cap_t cap, const ipc_msg_t *msg, proc_t **next)
+static err_t reply(cte_t sock, const cap_t *cap, const ipc_msg_t *msg,
+		   proc_t **next)
 {
-	if (msg->send_cap && !(cap.sock.perm & IPC_SCAP))
+	if (msg->send_cap && !(cap->sock.perm & IPC_SCAP))
 		return ERR_INVALID_SOCKET;
 	return do_send(cap, msg, next);
 }
 
-static err_t send(cte_t sock, cap_t cap, const ipc_msg_t *msg, proc_t **next)
+static err_t send(cte_t sock, const cap_t *cap, const ipc_msg_t *msg,
+		  proc_t **next)
 {
-	if (msg->send_cap && !(cap.sock.perm & IPC_CCAP))
+	if (msg->send_cap && !(cap->sock.perm & IPC_CCAP))
 		return ERR_INVALID_SOCKET;
 	return do_send(cap, msg, next);
 }
 
-static err_t replyrecv(cte_t sock, cap_t cap, const ipc_msg_t *msg,
+static err_t replyrecv(cte_t sock, const cap_t *cap, const ipc_msg_t *msg,
 		       proc_t **next)
 {
 	cte_t cap_buf = msg->cap_buf;
@@ -114,11 +116,11 @@ static err_t replyrecv(cte_t sock, cap_t cap, const ipc_msg_t *msg,
 	KASSERT(server->state == PSF_BUSY);
 
 	// Can send capability?
-	if (msg->send_cap && !(cap.sock.perm & IPC_SCAP))
+	if (msg->send_cap && !(cap->sock.perm & IPC_SCAP))
 		return ERR_INVALID_SOCKET;
 
 	// Can receive capability?
-	if ((cap.sock.perm & IPC_CCAP) && !cte_is_empty(cap_buf)
+	if ((cap->sock.perm & IPC_CCAP) && !cte_is_empty(cap_buf)
 	    && !msg->send_cap)
 		return ERR_DST_OCCUPIED;
 
@@ -135,17 +137,18 @@ static err_t replyrecv(cte_t sock, cap_t cap, const ipc_msg_t *msg,
 	return ERR_TIMEOUT;
 }
 
-static err_t call(cte_t sock, cap_t cap, const ipc_msg_t *msg, proc_t **next)
+static err_t call(cte_t sock, const cap_t *cap, const ipc_msg_t *msg,
+		  proc_t **next)
 {
 	cte_t cap_buf = msg->cap_buf;
 	proc_t *client = *next;
 
 	// Can send capability?
-	if (msg->send_cap && !(cap.sock.perm & IPC_CCAP))
+	if (msg->send_cap && !(cap->sock.perm & IPC_CCAP))
 		return ERR_INVALID_SOCKET;
 
 	// Can receive capability?
-	if ((cap.sock.perm & IPC_SCAP) && !cte_is_empty(cap_buf)
+	if ((cap->sock.perm & IPC_SCAP) && !cte_is_empty(cap_buf)
 	    && !msg->send_cap)
 		return ERR_DST_OCCUPIED;
 
@@ -161,7 +164,8 @@ static err_t call(cte_t sock, cap_t cap, const ipc_msg_t *msg, proc_t **next)
 /* Entry points */
 err_t cap_sock_send(cte_t sock, const ipc_msg_t *msg, proc_t **next)
 {
-	cap_t cap = cte_cap(sock);
+	cap_t cap;
+	cte_cap(sock, &cap);
 	if (cap.type == CAPTY_NONE)
 		return ERR_EMPTY;
 	if (cap.type != CAPTY_SOCKET)
@@ -171,15 +175,16 @@ err_t cap_sock_send(cte_t sock, const ipc_msg_t *msg, proc_t **next)
 		return ERR_PREEMPTED;
 	}
 	if (cap.sock.tag == 0) {
-		return reply(sock, cap, msg, next);
+		return reply(sock, &cap, msg, next);
 	} else {
-		return send(sock, cap, msg, next);
+		return send(sock, &cap, msg, next);
 	}
 }
 
 err_t cap_sock_recv(cte_t sock, cte_t cap_buf, proc_t **next)
 {
-	cap_t cap = cte_cap(sock);
+	cap_t cap;
+	cte_cap(sock, &cap);
 	if (cap.type == CAPTY_NONE)
 		return ERR_EMPTY;
 	if (cap.type != CAPTY_SOCKET)
@@ -193,7 +198,7 @@ err_t cap_sock_recv(cte_t sock, cte_t cap_buf, proc_t **next)
 
 	if (cap.sock.tag == 0) {
 		// server
-		do_recv(cap, cap_buf, *next);
+		do_recv(&cap, cap_buf, *next);
 		*next = NULL;
 		return ERR_TIMEOUT;
 	} else if (channels[cap.sock.chan].client == *next) {
@@ -213,7 +218,8 @@ err_t cap_sock_recv(cte_t sock, cte_t cap_buf, proc_t **next)
 
 err_t cap_sock_sendrecv(cte_t sock, const ipc_msg_t *msg, proc_t **next)
 {
-	cap_t cap = cte_cap(sock);
+	cap_t cap;
+	cte_cap(sock, &cap);
 	if (cap.type == CAPTY_NONE)
 		return ERR_EMPTY;
 	if (cap.type != CAPTY_SOCKET)
@@ -225,19 +231,19 @@ err_t cap_sock_sendrecv(cte_t sock, const ipc_msg_t *msg, proc_t **next)
 	KASSERT((*next)->state == PSF_BUSY);
 
 	if (cap.sock.tag == 0) {
-		return replyrecv(sock, cap, msg, next);
+		return replyrecv(sock, &cap, msg, next);
 	} else {
-		return call(sock, cap, msg, next);
+		return call(sock, &cap, msg, next);
 	}
 }
 
-void cap_sock_clear(cap_t cap, proc_t *p)
+void cap_sock_clear(const cap_t *cap, proc_t *p)
 {
-	if (cap.sock.tag == 0) {
-		channels[cap.sock.chan].server = NULL;
-		channels[cap.sock.chan].client = NULL;
-		channels[cap.sock.chan].cap_buf = NULL;
-	} else if (channels[cap.sock.chan].client == p) {
-		channels[cap.sock.chan].client = NULL;
+	if (cap->sock.tag == 0) {
+		channels[cap->sock.chan].server = NULL;
+		channels[cap->sock.chan].client = NULL;
+		channels[cap->sock.chan].cap_buf = NULL;
+	} else if (channels[cap->sock.chan].client == p) {
+		channels[cap->sock.chan].client = NULL;
 	}
 }

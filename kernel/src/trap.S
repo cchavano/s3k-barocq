@@ -1,7 +1,6 @@
 // See LICENSE file for copyright and license details.
 #include "macro.inc"
 #include "offsets.h"
-#include "csr.h"
 
 .globl trap_entry
 .globl trap_resume
