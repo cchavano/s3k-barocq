@@ -16,7 +16,6 @@
 
 #include <stdbool.h>
 
-
 static bool _valid_idx(cidx_t idx)
 {
 	return idx < S3K_CAP_CNT;
@@ -108,8 +107,8 @@ proc_t *_cap_read(proc_t *const p, const sys_args_t *args)
 
 proc_t *_cap_move(proc_t *const p, const sys_args_t *args)
 {
-	if (!_valid_idx(args->cap_move.src_idx) ||
-	    !_valid_idx(args->cap_move.dst_idx)) {
+	if (!_valid_idx(args->cap_move.src_idx)
+	    || !_valid_idx(args->cap_move.dst_idx)) {
 		p->regs.t0 = ERR_INVALID_INDEX;
 		return p;
 	}
@@ -144,7 +143,8 @@ proc_t *_cap_revoke(proc_t *const p, const sys_args_t *args)
 
 proc_t *_cap_derive(proc_t *const p, const sys_args_t *args)
 {
-	if (!_valid_idx(args->cap_derive.src_idx) || !_valid_idx(args->cap_derive.dst_idx)) {
+	if (!_valid_idx(args->cap_derive.src_idx)
+	    || !_valid_idx(args->cap_derive.dst_idx)) {
 		p->regs.t0 = ERR_INVALID_INDEX;
 		return p;
 	}
@@ -161,7 +161,8 @@ proc_t *_cap_derive(proc_t *const p, const sys_args_t *args)
 
 proc_t *_pmp_load(proc_t *const p, const sys_args_t *args)
 {
-	if (!_valid_idx(args->pmp_load.idx) || !_valid_slot(args->pmp_load.slot)) {
+	if (!_valid_idx(args->pmp_load.idx)
+	    || !_valid_slot(args->pmp_load.slot)) {
 		p->regs.t0 = ERR_INVALID_INDEX;
 		return p;
 	}

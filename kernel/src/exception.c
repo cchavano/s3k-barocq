@@ -1,6 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 #include "exception.h"
 
+#include "kprint.h"
 #include "proc.h"
 
 #define ILLEGAL_INSTRUCTION 0x2
@@ -34,6 +35,10 @@ static proc_t *_exception_trap_return(proc_t *proc)
 
 proc_t *exception_handler(proc_t *proc, uint64_t mcause, uint64_t mtval)
 {
+	kprintf("Exception: mcause: %X, mtval: %X, mepc: %X\n", mcause, mtval,
+		proc->regs.pc);
+	while (1) {
+	}
 	if (mcause == ILLEGAL_INSTRUCTION
 	    && (mtval == MRET || mtval == SRET || mtval == URET))
 		return _exception_trap_return(proc);

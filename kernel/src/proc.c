@@ -7,17 +7,15 @@
 #include "rtc.h"
 
 static proc_t procs[S3K_PROC_CNT];
-extern unsigned char _payload[];
 
-void proc_init(void)
+void proc_init(word_t payload)
 {
 	for (uint64_t i = 0; i < S3K_PROC_CNT; i++) {
 		procs[i].pid = i;
 		procs[i].state = PSF_SUSPENDED;
 	}
 	procs[0].state = 0;
-	procs[0].regs.pc = (word_t)_payload;
-	KASSERT(cap_pmp_load(ctable_get(0, 0), 0) == SUCCESS);
+	procs[0].regs.pc = (word_t)payload;
 }
 
 proc_t *proc_get(pid_t pid)

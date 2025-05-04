@@ -78,8 +78,8 @@ static void cap_ipc_move_hook(cte_t src, cte_t dst)
 	cte_cap(src, &cap);
 	switch (cap.type) {
 	case CAPTY_TIME: {
-		sched_update(cte_pid(dst), cap.time.end, cap.time.hart,
-			     cap.time.mrk, cap.time.end);
+		sched_update(cte_pid(dst), cap.time.end, cap.time.mrk,
+			     cap.time.end);
 	} break;
 	case CAPTY_PMP: {
 		if (cap.pmp.used) {
@@ -146,7 +146,7 @@ err_t cap_derive(cte_t src, cte_t dst, cap_t *ncap)
 
 err_t cap_delete_time(cte_t c, const cap_t *cap)
 {
-	sched_delete(cap->time.hart, cap->time.mrk, cap->time.end);
+	sched_delete(cap->time.mrk, cap->time.end);
 	cte_delete(c);
 	return SUCCESS;
 }
@@ -156,8 +156,7 @@ err_t cap_revoke_time(cte_t parent, cap_t *pcap)
 	cte_t child = cte_next(parent);
 	cap_t ccap;
 	cte_cap(child, &ccap);
-	if (ccap.type == CAPTY_TIME && pcap->time.hart == ccap.time.hart
-	    && pcap->time.bgn <= ccap.time.bgn
+	if (ccap.type == CAPTY_TIME && pcap->time.bgn <= ccap.time.bgn
 	    && ccap.time.end <= pcap->time.end) {
 		// delete the child
 		cte_delete(child);
@@ -165,10 +164,9 @@ err_t cap_revoke_time(cte_t parent, cap_t *pcap)
 		// Update schedule.
 		uint64_t pid = cte_pid(parent);
 		uint64_t end = pcap->time.end;
-		uint64_t hartid = pcap->time.hart;
 		uint64_t from = ccap.time.mrk;
 		uint64_t to = pcap->time.mrk;
-		sched_update(pid, end, hartid, from, to);
+		sched_update(pid, end, from, to);
 
 		// Update parent.
 		pcap->time.mrk = ccap.time.mrk;
@@ -179,10 +177,9 @@ err_t cap_revoke_time(cte_t parent, cap_t *pcap)
 	// Update schedule.
 	uint64_t pid = cte_pid(parent);
 	uint64_t end = pcap->time.end;
-	uint64_t hartid = pcap->time.hart;
 	uint64_t from = pcap->time.bgn;
 	uint64_t to = pcap->time.mrk;
-	sched_update(pid, end, hartid, from, to);
+	sched_update(pid, end, from, to);
 
 	// Update parent.
 	pcap->time.mrk = pcap->time.bgn;
@@ -192,11 +189,9 @@ err_t cap_revoke_time(cte_t parent, cap_t *pcap)
 
 err_t cap_derive_time(cte_t src, cap_t *cap, cte_t dst, const cap_t *new_cap)
 {
-	if (new_cap->type == CAPTY_TIME && new_cap->time.hart == cap->time.hart
-	    && new_cap->time.bgn == cap->time.mrk
+	if (new_cap->type == CAPTY_TIME && new_cap->time.bgn == cap->time.mrk
 	    && new_cap->time.end <= cap->time.end) {
-		sched_update(cte_pid(dst), new_cap->time.end,
-			     new_cap->time.hart, new_cap->time.bgn,
+		sched_update(cte_pid(dst), new_cap->time.end, new_cap->time.bgn,
 			     new_cap->time.end);
 		cap->time.mrk = new_cap->time.end;
 		cte_set_cap(src, cap);
@@ -269,8 +264,8 @@ err_t cap_derive_memory(cte_t src, cap_t *cap, cte_t dst, const cap_t *new_cap)
 		return SUCCESS;
 	}
 
-	word_t pmp_base = pmp_napot_decode_base(cap->pmp.addr);
-	word_t pmp_size = pmp_napot_decode_size(cap->pmp.addr);
+	word_t pmp_base = pmp_napot_decode_base(new_cap->pmp.addr);
+	word_t pmp_size = pmp_napot_decode_size(new_cap->pmp.addr);
 	uint64_t mem_mrk, mem_end;
 	mem_mrk = tag_block_to_addr(cap->mem.tag, cap->mem.mrk);
 	mem_end = tag_block_to_addr(cap->mem.tag, cap->mem.end);
@@ -281,6 +276,7 @@ err_t cap_derive_memory(cte_t src, cap_t *cap, cte_t dst, const cap_t *new_cap)
 		cap->mem.lck = true;
 		cte_set_cap(src, cap);
 		cte_insert(dst, new_cap, src);
+
 		return SUCCESS;
 	}
 	return ERR_INVALID_DERIVATION;

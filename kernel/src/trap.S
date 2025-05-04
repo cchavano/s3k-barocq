@@ -13,6 +13,7 @@
 trap_entry:
 	// Save user a0 to scratch, load PCB pointer
 	csrrw	a0,mscratch,a0
+	beqz	a0,__hang
 
 	sd	ra,PROC_RA(a0)
 	sd	sp,PROC_SP(a0)
@@ -127,3 +128,14 @@ trap_return:
 	csrrw	a0,mscratch,a0
 
 	mret
+
+__hang:
+	// Hang forever.
+	la 	a0, my_string
+	call	kputs
+	j 	__hang
+
+.section .data
+
+my_string:
+	.string "Hang!\n"

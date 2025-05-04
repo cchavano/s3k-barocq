@@ -16,11 +16,8 @@ all: kernel ${APPS}
 clean:
 	rm -rf ${BUILD}
 
-common:
-	@${MAKE} -C ${ROOT}/common
-
-kernel: common
-	@${MAKE} -C ${ROOT}/kernel
+kernel:
+	meson setup kernel ../../kernel --cross-file ../../cross/gcc-rv64imac.ini
 
 ${APPS}: common
 	@${MAKE} -f ../build.mk PROGRAM=$@

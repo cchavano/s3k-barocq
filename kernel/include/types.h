@@ -53,12 +53,12 @@ typedef enum {
 	SYSCALL_GET_INFO,  // Retrieve basic system information
 	SYSCALL_REG_READ,  // Set the value of a specific register
 	SYSCALL_REG_WRITE, // Get the value of a specific register
-	SYSCALL_SYNC,      // Synchronize with capabilities/scheduling
+	SYSCALL_SYNC,	   // Synchronize with capabilities/scheduling
 	SYSCALL_SLEEP,
 
 	// Capability Management
-	SYSCALL_CAP_READ,	// Read the properties of a capability
-	SYSCALL_CAP_MOVE,	// Move a capability to a different slot
+	SYSCALL_CAP_READ,   // Read the properties of a capability
+	SYSCALL_CAP_MOVE,   // Move a capability to a different slot
 	SYSCALL_CAP_DELETE, // Remove a capability from the system
 	SYSCALL_CAP_REVOKE, // Revoke a derived capabilities
 	SYSCALL_CAP_DERIVE, // Derive a new capability from an existing one
@@ -240,8 +240,7 @@ typedef union cap {
 
 	struct {
 		capty_t type : 4;
-		uint16_t _padding : 4;
-		hart_t hart;
+		uint16_t _padding : 12;
 		time_slot_t bgn;
 		time_slot_t mrk;
 		time_slot_t end;
@@ -251,10 +250,10 @@ typedef union cap {
 		capty_t type : 4;
 		rwx_t rwx : 3;
 		bool lck : 1;
-		tag_t tag;
-		block_t bgn;
-		block_t mrk;
-		block_t end;
+		tag_t tag : 8;
+		block_t bgn : 16;
+		block_t mrk : 16;
+		block_t end : 16;
 	} mem;
 
 	struct {
@@ -262,8 +261,7 @@ typedef union cap {
 		rwx_t rwx : 3;
 		bool used : 1;
 		pmp_slot_t slot;
-		uint16_t _padding;
-		uint32_t addr;
+		uint64_t addr : 48;
 	} pmp;
 
 	struct {
@@ -291,4 +289,4 @@ typedef union cap {
 	} sock;
 } cap_t;
 
-//static_assert(sizeof(cap_t) == 8, "cap_t has the wrong size");
+_Static_assert(sizeof(cap_t *) == 8, "cap_mem has the wrong size");

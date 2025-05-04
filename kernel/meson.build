@@ -56,7 +56,7 @@ link_args = [
 	'-T', platdir / 'linker.ld',
 ]
 
-executable('s3k',
+elf = executable('s3k.elf',
 	sources : sources,
 	include_directories : include_directories,
 	c_args : c_args,

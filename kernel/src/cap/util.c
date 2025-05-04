@@ -4,13 +4,11 @@
 #include "kassert.h"
 #include "pmp.h"
 
-void cap_mk_time(cap_t *cap, hart_t hart, time_slot_t bgn, time_slot_t end)
+void cap_mk_time(cap_t *cap, time_slot_t bgn, time_slot_t end)
 {
 	KASSERT(bgn < end);
-	KASSERT(hart <= S3K_MAX_HART);
 	KASSERT(end <= S3K_SLOT_CNT);
 	cap->type = CAPTY_TIME;
-	cap->time.hart = hart;
 	cap->time.bgn = bgn;
 	cap->time.mrk = bgn;
 	cap->time.end = end;
@@ -76,8 +74,8 @@ void cap_print(const cap_t *cap)
 		kprintf("NONE{}");
 		break;
 	case CAPTY_TIME:
-		kprintf("TIME{hart=%d,bgn=%d,end=%d,mrk=%d}", cap->time.hart,
-			cap->time.bgn, cap->time.end, cap->time.mrk);
+		kprintf("TIME{bgn=%d,end=%d,mrk=%d}", cap->time.bgn,
+			cap->time.end, cap->time.mrk);
 		break;
 	case CAPTY_MEMORY: {
 		uint64_t bgn = tag_block_to_addr(cap->mem.tag, cap->mem.bgn);

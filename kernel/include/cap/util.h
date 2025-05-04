@@ -1,7 +1,7 @@
 #pragma once
 #include "types.h"
 
-void cap_mk_time(cap_t *cap, hart_t hart, time_slot_t bgn, time_slot_t end);
+void cap_mk_time(cap_t *cap, time_slot_t bgn, time_slot_t end);
 void cap_mk_memory(cap_t *cap, addr_t bgn, addr_t end, rwx_t rwx);
 void cap_mk_pmp(cap_t *cap, napot_t addr, rwx_t rwx);
 void cap_mk_monitor(cap_t *cap, pid_t bgn, pid_t end);
