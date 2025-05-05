@@ -1,7 +1,7 @@
 #include "kprint.h"
 
+#include "cap/util.h"
 #include <stdarg.h>
-#include <stdbool.h>
 
 extern void kputc(char c);
 
@@ -104,6 +104,10 @@ void kprintf(const char *fmt, ...)
 		case 'c': {
 			char c = va_arg(ap, int);
 			kputc(c);
+		} break;
+		case 'C': {
+			cap_t *c = va_arg(ap, cap_t*);
+			cap_print(c);
 		} break;
 		case 's': {
 			char *s = va_arg(ap, char *);

@@ -24,6 +24,7 @@ void ctable_init(const cap_t init_caps[], size_t size)
 		if (init_caps[i].type == CAPTY_NONE)
 			continue;
 		cte_insert(&ctable[i], &init_caps[i], prev);
+		kprintf("# init_caps[%d]: %C\n", i, &init_caps[i]);
 	}
 }
 

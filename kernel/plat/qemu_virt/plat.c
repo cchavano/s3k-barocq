@@ -21,11 +21,6 @@ void kernel_init(void)
 	cap_mk_time(&init_caps[3], 0, S3K_SLOT_CNT);
 	cap_mk_monitor(&init_caps[4], 0, S3K_PROC_CNT);
 	cap_mk_channel(&init_caps[5], 0, S3K_CHAN_CNT);
-	for (int i = 0; i < ARRAY_SIZE(init_caps); ++i) {
-		kprintf("# init_caps[%d]: ", i);
-		cap_print(&init_caps[i]);
-		kprintf("\n");
-	}
 	ctable_init(init_caps, ARRAY_SIZE(init_caps));
 
 	kputs("# Initialize scheduler");
