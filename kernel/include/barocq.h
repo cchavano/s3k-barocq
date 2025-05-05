@@ -1,3 +1,4 @@
+#pragma once
 struct kernel_state {
 	unsigned int *cnext;
 	unsigned int *cprev;

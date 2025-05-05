@@ -56,8 +56,23 @@ link_args = [
 	'-T', platdir / 'linker.ld',
 ]
 
+barocq = find_program('barocq', required : true)
+
+kernel_br = files ('brc/kernel.br')
+
+kernel_c = custom_target(
+	'kernel_c',
+	input : kernel_br,
+	output : 'kernel.c',
+	command : [
+		barocq,
+		'@INPUT@',
+		'-o', '@OUTPUT@',
+	],
+)
+
 elf = executable('s3k.elf',
-	sources : sources,
+	sources : sources + kernel_c,
 	include_directories : include_directories,
 	c_args : c_args,
 	link_args : link_args,

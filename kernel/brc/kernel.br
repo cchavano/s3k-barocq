@@ -1,3 +1,5 @@
+module Kernel;;
+
 type cap_t = u64;;
 
 struct kernel_state = {
