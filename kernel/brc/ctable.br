@@ -1,0 +1,43 @@
+module Ctable;;
+
+type kstate = Kernel::state;;
+
+def is_empty_cap(ks: kstate, cid: u32) : bool =
+  Cap::get_type(ks.ctable[cid]) == Cap::CAPTY_NONE;;
+
+def set_cap(ks: kstate, cid: u32, cap: Cap::cap_t) : kstate =
+  let ctable = ks.ctable in
+  let ctable = ctable[cid] <- cap in
+  ks.ctable <- ctable;;
+
+def set_next(ks: kstate, cid: u32, nextid: u32) : kstate =
+  let cnext = ks.cnext in
+  let cnext = cnext[cid] <- nextid in
+  ks.cnext <- cnext;;
+
+def set_prev(ks: kstate, cid: u32, previd: u32) : kstate =
+  let cprev = ks.cprev in
+  let cprev = cprev[cid] <- previd in
+  ks.cprev <- cprev;;
+
+def move(ks: kstate, src: u32, dst: u32) : kstate =
+  if src == dst then ks
+  else
+    let ks = set_cap(ks, dst, ks.ctable[src]) in
+    let ks = set_cap(ks, src, 0UL) in
+    let ks = set_prev(ks, dst, ks.cprev[src]) in
+    let ks = set_next(ks, dst, ks.cnext[src]) in
+    let ks = set_next(ks, ks.cprev[dst], dst) in
+    set_prev(ks, ks.cnext[dst], dst);;
+
+def delete(ks: kstate, cid: u32) : kstate =
+  let ks = set_cap(ks, cid, 0UL) in
+  let ks = set_next(ks, ks.cprev[cid], ks.cnext[cid]) in
+  set_prev(ks, ks.cnext[cid], ks.cprev[cid]);;
+
+def insert(ks: kstate, cid: u32, cap: Cap::cap_t, previd: u32) : kstate =
+  let ks = set_prev(ks, cid, previd) in
+  let ks = set_next(ks, cid, ks.cnext[previd]) in
+  let ks = set_next(ks, previd, cid) in
+  let ks = set_prev(ks, ks.cnext[cid], cid) in
+  set_cap(ks, cid, cap);;

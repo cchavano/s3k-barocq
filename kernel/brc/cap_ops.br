@@ -1,0 +1,262 @@
+module Cap_ops;;
+
+type kstate = Kernel::state;;
+
+def cap_pid(cid: u32) : u64 =
+  (cid / Kernel::S3K_CAP_CNT) as u64;;
+
+def pmp_napot_decode_base(addr: u64) : u64 = 0UL;;
+
+def pmp_napot_decode_size(addr: u64) : u64 = 0UL;;
+
+def tag_block_to_addr(tag: u64, block: u64) : u64 =
+  (tag << Kernel::MAX_BLOCK_SIZE) + (block << Kernel::MIN_BLOCK_SIZE);;
+
+(* Memory capability *)
+
+def delete_memory(ks: kstate, cid: u32) : kstate =
+  let ks = Ctable::delete(ks, cid) in
+  ks.errcode <- Kernel::SUCCESS;;
+
+def revoke_memory(ks: kstate, parent: u32) : kstate =
+  let pcap = ks.ctable[parent] in
+  let child = ks.cnext[parent] in
+  let ccap = ks.ctable[child] in
+  if (Cap::get_type(ccap) == Cap::CAPTY_MEMORY)
+    && (Cap::memory_get_tag(pcap) == Cap::memory_get_tag(ccap))
+    && (Cap::memory_get_bgn(pcap) == Cap::memory_get_bgn(ccap))
+  then
+    let ks = Ctable::delete(ks, child) in
+    let pcap = Cap::memory_set_mrk(pcap, Cap::memory_get_mrk(ccap)) in
+    let pcap = Cap::memory_set_lck(pcap, Cap::memory_get_lck(ccap)) in
+    let ks = Ctable::set_cap(ks, parent, pcap) in
+    if (Cap::memory_get_mrk(pcap) == (Cap::memory_get_bgn(pcap)))
+        && !(Cap::memory_get_lck(pcap))
+    then
+      ks.errcode <- Kernel::SUCCESS
+    else
+      ks.errcode <- Kernel::CONTINUE
+  else
+    let base = pmp_napot_decode_base(Cap::pmp_get_addr(ccap)) in
+    let pcap_tag_addr = tag_block_to_addr(Cap::memory_get_tag(pcap), Cap::memory_get_bgn(pcap)) in
+    if (Cap::get_type(ccap) == Cap::CAPTY_PMP)
+        && (pcap_tag_addr <= base)
+    then
+      let ks = Ctable::delete(ks, child) in
+      let ks =
+        if (Cap::pmp_get_used(ccap)) then
+          let ks = Kernel::vreg_write(ks, 0U, true as u64) in
+          let ks = Kernel::vreg_write(ks, 1U, cap_pid(child)) in
+          Kernel::vreg_write(ks, 2U, Cap::pmp_get_slot(ccap))
+        else
+          Kernel::vreg_write(ks, 0U, false as u64)
+      in
+      ks.errcode <- Kernel::CONTINUE
+    else
+      let pcap = Cap::memory_set_mrk(pcap, Cap::memory_get_bgn(pcap)) in
+      let pcap = Cap::memory_set_lck(pcap, true) in
+      let ks = Ctable::set_cap(ks, parent, pcap) in
+      ks.errcode <- Kernel::SUCCESS;;
+
+def derive_memory(ks: kstate, src: u32, dst: u32, ncap: Cap::cap_t) : kstate =
+  let cap = ks.ctable[src] in
+  if (Cap::get_type(ncap) == Cap::CAPTY_MEMORY)
+      && (Cap::memory_get_tag(cap) == Cap::memory_get_tag(ncap))
+      && (Cap::memory_get_tag(cap) == Cap::memory_get_tag(ncap))
+      && (Cap::memory_get_mrk(cap) <= Cap::memory_get_bgn(ncap))
+      && (Cap::memory_get_end(ncap) <= Cap::memory_get_end(cap))
+      && ((Cap::memory_get_rwx(ncap) & Cap::memory_get_rwx(cap)) == Cap::memory_get_rwx(ncap))
+      && !(Cap::memory_get_lck(cap))
+  then
+    let cap = Cap::memory_set_mrk(cap, Cap::memory_get_end(ncap)) in
+    let ks = Ctable::set_cap(ks, src, cap) in
+    let ks = Ctable::insert(ks, dst, cap, src) in
+    ks.errcode <- Kernel::SUCCESS
+  else
+    let pmp_begin = pmp_napot_decode_base(Cap::pmp_get_addr(ncap)) in
+    let pmp_size = pmp_napot_decode_size(Cap::pmp_get_addr(ncap)) in
+    let pmp_end = pmp_begin + pmp_size in
+    let mem_mrk = tag_block_to_addr(Cap::memory_get_tag(cap), Cap::memory_get_mrk(cap)) in
+    let mem_end = tag_block_to_addr(Cap::memory_get_tag(cap), Cap::memory_get_end(cap)) in
+    if (Cap::get_type(ncap) == Cap::CAPTY_PMP)
+        && (mem_mrk <= pmp_begin)
+        && ((Cap::memory_get_rwx(ncap) & Cap::memory_get_rwx(cap)) == Cap::memory_get_rwx(ncap))
+    then
+      let cap = Cap::memory_set_lck(cap, true) in
+      let ks = Ctable::set_cap(ks, src, cap) in
+      let ks = Ctable::insert(ks, dst, ncap, src) in
+      ks.errcode <- Kernel::SUCCESS
+    else
+      ks.errcode <- Kernel::ERR_INVALID_DERIVATION;;
+
+(* Pmp capability *)
+
+def delete_pmp(ks: kstate, cid: u32) : kstate =
+  let cap = ks.ctable[cid] in
+  let ks =
+    if Cap::pmp_get_used(cap) then
+      let ks = Kernel::vreg_write(ks, 0U, true as u64) in
+      let ks = Kernel::vreg_write(ks, 1U, cap_pid(cid)) in
+      Kernel::vreg_write(ks, 2U, Cap::pmp_get_slot(cap))
+    else
+      Kernel::vreg_write(ks, 0U, false as u64)
+  in
+    let ks = Ctable::delete(ks, cid) in
+    ks.errcode <- Kernel::SUCCESS;;
+
+def revoke_pmp(ks: kstate) : kstate =
+  ks.errcode <- Kernel::SUCCESS;;
+
+def derive_pmp(ks: kstate, src: u32, dst: u32, ncap: Cap::cap_t) : kstate =
+  ks.errcode <- Kernel::ERR_INVALID_DERIVATION;;
+
+(* Time capability *)
+
+def delete_time(ks: kstate, cid: u32) : kstate =
+  let cap = ks.ctable[cid] in
+  let ks = Sched::delete(ks, Cap::time_get_hart(cap), Cap::time_get_mrk(cap), Cap::time_get_end(cap)) in
+  let ks = Ctable::delete(ks, cid) in
+  ks.errcode <- Kernel::SUCCESS;;
+
+def revoke_time(ks: kstate, parent: u32)  : kstate =
+  let pcap = ks.ctable[parent] in
+  let child = ks.cnext[parent] in
+  let ccap = ks.ctable[child] in
+  if (Cap::get_type(ccap) == Cap::CAPTY_TIME)
+      && (Cap::time_get_hart(pcap) == Cap::time_get_hart(ccap))
+      && (Cap::time_get_bgn(pcap) <= Cap::time_get_bgn(ccap))
+      && (Cap::time_get_end(ccap) <= Cap::time_get_end(pcap))
+  then
+    let ks = Ctable::delete(ks, child) in
+    let pid = cap_pid(parent) in
+    let end = Cap::time_get_end(pcap) in
+    let hartid = Cap::time_get_hart(pcap) in
+    let from = Cap::time_get_mrk(ccap) in
+    let to = Cap::time_get_mrk(pcap) in
+    let ks = Sched::update(ks, pid, end, hartid, from, to) in
+
+    let pcap = Cap::time_set_mrk(pcap, Cap::time_get_mrk(ccap)) in
+    let ks = Ctable::set_cap(ks, parent, pcap) in
+    if (Cap::time_get_mrk(pcap) == Cap::time_get_bgn(pcap)) then
+      ks.errcode <- Kernel::SUCCESS
+    else
+      ks.errcode <- Kernel::CONTINUE
+  else
+    let pid = cap_pid(parent) in
+    let end = Cap::time_get_end(pcap) in
+    let hartid = Cap::time_get_hart(pcap) in
+    let from = Cap::time_get_bgn(pcap) in
+    let to = Cap::time_get_mrk(pcap) in
+    let ks = Sched::update(ks, pid, end, hartid, from, to) in
+
+    let pcap = Cap::time_set_mrk(pcap, Cap::time_get_bgn(pcap)) in
+    let ks = Ctable::set_cap(ks, parent, pcap) in
+    ks.errcode <- Kernel::SUCCESS;;
+
+def derive_time(ks: kstate, src: u32, dst: u32, ncap: Cap::cap_t) : kstate =
+  let cap = ks.ctable[src] in
+  if (Cap::get_type(ncap) == Cap::CAPTY_TIME)
+      && (Cap::time_get_hart(ncap) == Cap::time_get_hart(cap))
+      && (Cap::time_get_bgn(ncap) <= Cap::time_get_mrk(cap))
+      && (Cap::time_get_end(ncap) <= Cap::time_get_end(cap))
+  then
+    let ks =
+      Sched::update(
+        ks, cap_pid(dst),
+        Cap::time_get_end(ncap),
+        Cap::time_get_hart(ncap),
+        Cap::time_get_bgn(ncap),
+        Cap::time_get_end(ncap))
+    in
+    let cap = Cap::time_set_mrk(cap, Cap::time_get_end(ncap)) in
+    let ks = Ctable::set_cap(ks, src, cap) in
+    let ks = Ctable::insert(ks, dst, ncap, src) in
+    ks.errcode <- Kernel::SUCCESS
+  else
+    ks.errcode <- Kernel::ERR_INVALID_DERIVATION;;
+
+(* Monitor capability *)
+
+def delete_monitor(ks: kstate, cid: u32) : kstate =
+  Ctable::delete(ks, cid);;
+
+def revoke_monitor(ks: kstate, parent: u32) : kstate =
+  let pcap = ks.ctable[parent] in
+  let child = ks.cnext[parent] in
+  let ccap = ks.ctable[child] in
+  if (Cap::get_type(ccap) == Cap::CAPTY_MONITOR)
+      && (Cap::monitor_get_bgn(pcap) <= Cap::monitor_get_bgn(pcap))
+  then
+    let ks = Ctable::delete(ks, child) in
+    let pcap = Cap::monitor_set_mrk(pcap, Cap::monitor_get_mrk(ccap)) in
+    let ks = Ctable::set_cap(ks, parent, pcap) in
+    if (Cap::monitor_get_mrk(pcap) == Cap::monitor_get_bgn(pcap)) then
+      ks.errcode <- Kernel::SUCCESS
+    else
+      ks.errcode <- Kernel::CONTINUE
+  else
+    let pcap = Cap::monitor_set_mrk(pcap, Cap::monitor_get_bgn(pcap)) in
+    let ks = Ctable::set_cap(ks, parent, pcap) in
+    ks.errcode <- Kernel::SUCCESS;;
+
+def cap_derive_monitor(ks: kstate, src: u32, dst: u32, ncap: Cap::cap_t)  : kstate =
+  let cap = ks.ctable[src] in
+  if (Cap::get_type(ncap) == Cap::CAPTY_MONITOR)
+      && (Cap::monitor_get_mrk(cap) <= Cap::monitor_get_bgn(ncap))
+      && (Cap::monitor_get_mrk(cap) <= Cap::monitor_get_end(cap))
+  then
+    let cap = Cap::monitor_set_mrk(cap, Cap::monitor_get_end(cap)) in
+    let ks = Ctable::set_cap(ks, src, cap) in
+    let ks = Ctable::insert(ks, dst, ncap, src) in
+    ks.errcode <- Kernel::SUCCESS
+  else
+    ks.errcode <- Kernel::ERR_INVALID_DERIVATION;;
+      
+(* Capability operation dispatchers *)
+
+def read(ks: kstate, cid: u32) : kstate =
+  let cap = ks.ctable[cid] in
+  if Cap::get_type(cap) == Cap::CAPTY_NONE then
+    ks.errcode <- Kernel::ERR_EMPTY
+  else
+    let ks = Kernel::vreg_write(ks, 0U, cap) in
+    ks.errcode <- Kernel::SUCCESS;;
+
+def move(ks: kstate, src: u32, dst: u32) : kstate =
+  if Ctable::is_empty_cap(ks, src) then
+    ks.errcode <- Kernel::ERR_SRC_EMPTY
+  else if !(Ctable::is_empty_cap(ks, dst)) then
+    ks.errcode <- Kernel::ERR_DST_OCCUPIED
+  else
+    let ks = Ctable::move(ks, src, dst) in
+    ks.errcode <- Kernel::SUCCESS;;
+
+def delete(ks: kstate, cid: u32) : kstate =
+  if Ctable::is_empty_cap(ks, cid) then
+    ks.errcode <- Kernel::ERR_EMPTY
+  else
+    let cap_type = Cap::get_type(ks.ctable[cid]) in
+    if cap_type == Cap::CAPTY_MEMORY then
+      delete_memory(ks, cid)
+    else if cap_type == Cap::CAPTY_PMP then
+      delete_pmp(ks, cid)
+    else if cap_type == Cap::CAPTY_TIME then
+      delete_time(ks, cid)
+    else
+      ks.errcode <- Kernel::ERR_INVALID_CAPABILITY;;
+
+def derive(ks: kstate, src: u32, dst: u32, ncap: Cap::cap_t) : kstate =
+  if Ctable::is_empty_cap(ks, src) then
+    ks.errcode <- Kernel::ERR_SRC_EMPTY
+  else if !(Ctable::is_empty_cap(ks, dst)) then
+    ks.errcode <- Kernel::ERR_DST_OCCUPIED
+  else
+    let cap_type = Cap::get_type(ks.ctable[src]) in
+    if cap_type == Cap::CAPTY_MEMORY then
+      derive_memory(ks, src, dst, ncap)
+    else if cap_type == Cap::CAPTY_PMP then
+      derive_pmp(ks, src, dst, ncap)
+    else if cap_type == Cap::CAPTY_TIME then
+      derive_time(ks, src, dst, ncap)
+    else
+      ks.errcode <- Kernel::ERR_INVALID_CAPABILITY;;

@@ -1,0 +1,17 @@
+module Sched;;
+
+type kstate = Kernel::state;;
+
+def delete(ks: kstate, hart: u64, from: u64, to: u64) : kstate =
+  let hart = hart - Kernel::S3K_MIN_HART in
+  let offset = hart * 16UL in
+  let mask = 0xffffUL << offset in
+  (* MISSING CODE *)
+  ks;;
+
+def update(ks: kstate, pid: u64, end: u64, hart: u64, from: u64, to: u64) : kstate =
+  let hart = hart - Kernel::S3K_MIN_HART in
+  let offset = hart * 16UL in
+  let mask = 0xffffUL << offset in
+  (* MISSING CODE *)
+  ks;;

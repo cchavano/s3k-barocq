@@ -65,7 +65,7 @@ class Capability:
     def constr_fun(self):
         output = []
         parameters = [f"{name}: u64" for name in self.fields() if name != "pad"]
-        output.append(f"def cap_mk_{self.name()}({', '.join(parameters)}) : u64 =")
+        output.append(f"def mk_{self.name()}({', '.join(parameters)}) : u64 =")
         builder = f"  {self.type()}"
         for field in self.fields('word0'):
             if field == "pad":
@@ -83,13 +83,13 @@ class Capability:
         mask = (1 << self.size(field)) - 1
         output = []
         if self.size(field) == 1:
-            output.append(f"def cap_{name}_get_{field}(cap: cap_t) : bool =")
+            output.append(f"def {name}_get_{field}(cap: cap_t) : bool =")
             if offset:
                 output.append(f"  ((cap >> {offset}UL) & 0x1UL) as bool;;")
             else:
                 output.append(f"  (cap & 0x1UL) as bool;;")
         else:
-            output.append(f"def cap_{name}_get_{field}(cap: cap_t) : u64 =")
+            output.append(f"def {name}_get_{field}(cap: cap_t) : u64 =")
             if offset:
                 output.append(f"  (cap >> {offset}UL) & {hex(mask)}UL;;")
             else:
@@ -103,13 +103,13 @@ class Capability:
         mask = (1 << self.size(field)) - 1
         output = []
         if self.size(field) == 1:
-            output.append(f"def cap_{name}_set_{field}(cap: cap_t, v: bool) : u64 =")
+            output.append(f"def {name}_set_{field}(cap: cap_t, v: bool) : u64 =")
             if offset:
                 output.append(f"  (cap & ~{hex(mask)}UL) | ((v as u64) << {offset}UL);;")
             else:
                 output.append(f"  (cap & ~{hex(mask)}UL) | (v as u64);;")
         else:
-            output.append(f"def cap_{name}_set_{field}(cap: cap_t, v: u64) : u64 =")
+            output.append(f"def {name}_set_{field}(cap: cap_t, v: u64) : u64 =")
             if offset:
                 mask = mask << offset
                 output.append(f"  (cap & ~{hex(mask)}UL) | (v << {offset}UL);;")
@@ -120,13 +120,13 @@ class Capability:
 
 # Open the file and load the file
 def main(capabilities):
-    output = ["(* Capability types *)"]
+    output = ["module Cap;;\n", "type cap_t = u64;;\n", "(* Capability types *)"]
     for i, cap in enumerate(capabilities):
         output.append(f"def CAPTY_{cap['name'].upper()} : u64 = {i}UL;;")
     output.append("\n(* Number of capability types (incl. null cap) *)")
     output.append(f"def CAPTY_COUNT : u64 = {len(capabilities)}UL;;")
     output.append("\n(* Capability type *)")
-    output.append(f"def cap_get_type(cap: cap_t) : u64 = (cap & 0xfUL);;")
+    output.append(f"def get_type(cap: cap_t) : u64 = (cap & 0xfUL);;")
     for cap in capabilities:
         output.append(f"\n(* {cap['name']} capability *)")
         capability = Capability(**cap)
