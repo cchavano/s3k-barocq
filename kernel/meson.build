@@ -58,16 +58,17 @@ link_args = [
 
 barocq = find_program('barocq', required : true)
 
-kernel_br = files ('brc/kernel.br')
+kernel_br = files ('brc/kernel.br', 'brc/capgen/cap.br')
 
 kernel_c = custom_target(
 	'kernel_c',
 	input : kernel_br,
-	output : 'kernel.c',
+	output : ['kernel.c', 'kernel.h'],
 	command : [
 		barocq,
 		'@INPUT@',
-		'-o', '@OUTPUT@',
+		'-o', '@OUTPUT0@',
+		'-gen-header',
 	],
 )
 

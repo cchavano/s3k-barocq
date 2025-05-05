@@ -1,3 +1,7 @@
+module Cap;;
+
+type cap_t = u64;;
+
 (* Capability types *)
 def CAPTY_NONE : u64 = 0UL;;
 def CAPTY_TIME : u64 = 1UL;;

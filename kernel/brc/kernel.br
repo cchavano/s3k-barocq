@@ -1,4 +1,4 @@
-module Kernel;;
+module Cap;;
 
 type cap_t = u64;;
 
