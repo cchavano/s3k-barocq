@@ -2,7 +2,7 @@
 
 #include "cap/ipc.h"
 #include "cap/util.h"
-#include "kernel.h"
+#include "preempt.h"
 #include "pmp.h"
 #include "sched.h"
 
@@ -125,7 +125,7 @@ err_t cap_revoke(cte_t parent)
 	do {
 		cte_cap(parent, &pcap);
 		err = revoke_handlers[pcap.type](parent, &pcap);
-	} while (err < 0 && !kernel_preempt());
+	} while (err < 0 && !preempt());
 	return err < 0 ? ERR_PREEMPTED : SUCCESS;
 }
 

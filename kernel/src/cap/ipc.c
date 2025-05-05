@@ -4,7 +4,6 @@
 #include "cap/table.h"
 #include "csr.h"
 #include "kassert.h"
-#include "kernel.h"
 #include "macro.h"
 #include "proc.h"
 #include "rtc.h"

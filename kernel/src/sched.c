@@ -4,7 +4,6 @@
 
 #include "csr.h"
 #include "kassert.h"
-#include "kernel.h"
 #include "kprint.h"
 #include "proc.h"
 #include "rtc.h"

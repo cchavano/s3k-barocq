@@ -8,7 +8,6 @@
 #include "cap/table.h"
 #include "cap/util.h"
 #include "csr.h"
-#include "kernel.h"
 #include "rtc.h"
 #include "sched.h"
 #include "trap.h"

@@ -28,7 +28,6 @@ sources = files(
 	'src/cap/util.c',
 	'src/exception.c',
 	'src/interrupt.c',
-	'src/kernel.c',
 	'src/kprint.c',
 	'src/proc.c',
 	'src/sched.c',
