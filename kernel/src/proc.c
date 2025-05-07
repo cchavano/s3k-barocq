@@ -9,6 +9,8 @@
 static uint32_t _pmpcfg[S3K_PROC_CNT][S3K_PMP_CNT];
 static uint64_t _pmpaddr[S3K_PROC_CNT][S3K_PMP_CNT];
 static proc_t procs[S3K_PROC_CNT];
+static proc_t *_procs[S3K_PROC_CNT];
+extern struct Kernel_state ks;
 
 void proc_init(word_t payload)
 {
@@ -17,9 +19,12 @@ void proc_init(word_t payload)
 		procs[i].state = PSF_SUSPENDED;
 		procs[i].pmpcfg = _pmpcfg[i];
 		procs[i].pmpaddr = (long long unsigned int*)_pmpaddr[i];
+		_procs[i] = &procs[i];
 	}
 	procs[0].state = 0;
 	procs[0].pc = (word_t)payload;
+
+	ks.ptable = _procs;
 }
 
 proc_t *proc_get(pid_t pid)
@@ -39,40 +44,23 @@ proc_state_t proc_get_state(proc_t *proc)
 
 bool proc_acquire(proc_t *proc)
 {
-	proc_state_t expected = proc->state;
-	proc_state_t desired = PSF_BUSY;
-
-	if (expected & (PSF_BUSY | PSF_SUSPENDED))
-		return false;
-
-	if (rtc_time_get() < proc->timeout)
-		return false;
-	proc->state = desired;
-	return true;
+	Ptable_acquire(&ks, rtc_time_get(), proc->pid);
+	return ks.vregs[0];
 }
 
 void proc_release(proc_t *proc)
 {
-	KASSERT(proc->state & PSF_BUSY);
-	proc->state &= ~PSF_BUSY;
+	Ptable_release(&ks, proc->pid);
 }
 
 void proc_suspend(proc_t *proc)
 {
-	proc_state_t prev = proc->state;
-	proc->state |= PSF_SUSPENDED;
-
-	if (prev & PSF_BLOCKED) {
-		proc->state = PSF_SUSPENDED;
-		proc->t0 = ERR_SUSPENDED;
-	}
+	Ptable_suspend(&ks, proc->pid);
 }
 
 void proc_resume(proc_t *proc)
 {
-	if (proc->state == PSF_SUSPENDED)
-		proc->timeout = 0;
-	proc->state &= ~PSF_SUSPENDED;
+	Ptable_resume(&ks, proc->pid);
 }
 
 void proc_ipc_wait(proc_t *proc, chan_t chan)
@@ -101,18 +89,17 @@ bool proc_is_suspended(proc_t *proc)
 
 bool proc_pmp_avail(proc_t *proc, pmp_slot_t slot)
 {
-	return proc->pmpcfg[slot] == 0;
+	return Ptable_pmp_avail(&ks, proc->pid, slot);
 }
 
 void proc_pmp_load(proc_t *proc, pmp_slot_t slot, pmp_slot_t rwx, napot_t addr)
 {
-	proc->pmpcfg[slot] = rwx | 0x18;
-	proc->pmpaddr[slot] = addr;
+	Ptable_pmp_load(&ks, proc->pid, slot, rwx, addr);
 }
 
 void proc_pmp_unload(proc_t *proc, pmp_slot_t slot)
 {
-	proc->pmpcfg[slot] = 0;
+	Ptable_pmp_unload(&ks, proc->pid, slot);
 }
 
 proc_t* proc_pmp_sync(proc_t *proc)

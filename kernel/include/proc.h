@@ -17,9 +17,8 @@ typedef struct Proc_proc_t proc_t;
 typedef word_t proc_state_t;
 
 typedef enum {
-	PSF_RUNNING = 0,
-	PSF_BLOCKED = 1,
-	PSF_BUSY = 2,
+	PSF_BUSY = 1,
+	PSF_BLOCKED = 2,
 	PSF_SUSPENDED = 4,
 } proc_state_flags_t;
 
