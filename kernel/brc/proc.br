@@ -13,7 +13,8 @@ struct proc_t = {
   a5: word_t; a6: word_t; a7: word_t;
   s2: word_t; s3: word_t; s4: word_t; s5: word_t; s6: word_t;
   s7: word_t; s8: word_t; s9: word_t;
-  s10: word_t; s11: word_t; t3: word_t; t4: word_t; t5: word_t; t76: word_t;
+  s10: word_t; s11: word_t; t3: word_t; t4: word_t; t5: word_t; t6: word_t;
+  tpc: word_t; tsp: word_t; epc: word_t; esp: word_t;
   ecause: word_t; eval: word_t;
   servtime: word_t;
   (* =============== *)
