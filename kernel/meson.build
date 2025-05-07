@@ -65,6 +65,7 @@ kernel_br = files(
 	'brc/cap_ops.br',
 	'brc/pmp.br',
 	'brc/monitor.br',
+	'brc/syscall.br'
 )
 
 kernel_c = custom_target(

@@ -5,13 +5,14 @@ module Error
 type err_t = i64
 
 def SUCCESS : err_t = 0L
-def ERR_EMPTY : err_t = 1L
-def ERR_SRC_EMPTY : err_t = 2L
-def ERR_DST_OCCUPIED : err_t = 3L
-def ERR_INVALID_DERIVATION : err_t = 5L
-def ERR_INVALID_MONITOR : err_t = 6L
-def ERR_INVALID_STATE : err_t = 8L
-def ERR_INVALID_PMP : err_t = 9L
-def ERR_INVALID_CAPABILITY : err_t = 14L
-def ERR_SUSPENDED : err_t = 18L
+def EMPTY : err_t = 1L
+def SRC_EMPTY : err_t = 2L
+def DST_OCCUPIED : err_t = 3L
+def INVALID_INDEX : err_t = 4L
+def INVALID_DERIVATION : err_t = 5L
+def INVALID_MONITOR : err_t = 6L
+def INVALID_STATE : err_t = 8L
+def INVALID_PMP : err_t = 9L
+def INVALID_CAPABILITY : err_t = 14L
+def SUSPENDED : err_t = 18L
 def CONTINUE : err_t = -1L

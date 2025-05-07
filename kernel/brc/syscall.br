@@ -1,0 +1,24 @@
+module Syscall
+
+type kstate = Kernel::state
+
+
+def valid_idx(idx: u32) : bool =
+  idx < Kernel::S3K_CAP_CNT
+
+def cap_read(ks: kstate, pid: Types::pid_t, idx: u32) : kstate =
+  let ptable = ks.ptable in
+  let proc = ptable[pid] in
+  let proc =
+    if !(valid_idx(idx)) then
+      proc.t0 <- (Error::INVALID_INDEX as u64)
+    else
+      let cid = Cap_ops::get_cap_idx_from_pid(pid, idx) in
+      let ks = Cap_ops::read(ks, cid) in
+      let proc = proc.a0 <- ks.vregs[0U] in
+      proc.t0 <- (ks.errcode as u64)
+  in
+  let ptable = ptable[pid] <- proc in
+  ks.ptable <- ptable
+
+    

@@ -2,21 +2,19 @@ module Proc
 
 type proc_state_t = u64
 
-type word_t = u64
-
 struct proc_t = {
   state: proc_state_t;
   (* Registers ===== *)
-  pc: word_t; ra: word_t; sp: word_t; gp: word_t; tp: word_t;
-  t0: word_t; t1: word_t; t2: word_t; s0: word_t; s1: word_t;
-  a0: word_t; a1: word_t; a2: word_t; a3: word_t; a4: word_t;
-  a5: word_t; a6: word_t; a7: word_t;
-  s2: word_t; s3: word_t; s4: word_t; s5: word_t; s6: word_t;
-  s7: word_t; s8: word_t; s9: word_t;
-  s10: word_t; s11: word_t; t3: word_t; t4: word_t; t5: word_t; t6: word_t;
-  tpc: word_t; tsp: word_t; epc: word_t; esp: word_t;
-  ecause: word_t; eval: word_t;
-  servtime: word_t;
+  pc: Types::word_t; ra: Types::word_t; sp: Types::word_t; gp: Types::word_t; tp: Types::word_t;
+  t0: Types::word_t; t1: Types::word_t; t2: Types::word_t; s0: Types::word_t; s1: Types::word_t;
+  a0: Types::word_t; a1: Types::word_t; a2: Types::word_t; a3: Types::word_t; a4: Types::word_t;
+  a5: Types::word_t; a6: Types::word_t; a7: Types::word_t;
+  s2: Types::word_t; s3: Types::word_t; s4: Types::word_t; s5: Types::word_t; s6: Types::word_t;
+  s7: Types::word_t; s8: Types::word_t; s9: Types::word_t;
+  s10: Types::word_t; s11: Types::word_t; t3: Types::word_t; t4: Types::word_t; t5: Types::word_t; t6: Types::word_t;
+  tpc: Types::word_t; tsp: Types::word_t; epc: Types::word_t; esp: Types::word_t;
+  ecause: Types::word_t; eval: Types::word_t;
+  servtime: Types::word_t;
   (* =============== *)
   pmpcfg: array u32;
   pmpaddr: array u64;
@@ -34,7 +32,7 @@ def suspend(proc: proc_t) : proc_t =
   let proc = proc.state <- (proc.state | PSF_SUSPENDED) in
   if (prev & PSF_BLOCKED) as bool then
     let proc = proc.state <- PSF_SUSPENDED in
-    proc.t0 <- (Error::ERR_SUSPENDED as u64)
+    proc.t0 <- (Error::SUSPENDED as u64)
   else
     proc
 
