@@ -1,34 +1,42 @@
 module Kernel
 
 (* Kernel data structure *)
+module Kernel
 
-struct state = {
+(* Kernel data structure *)
+
+type state = {
   (* Capability data *)
-  cnext: array u32;
-  cprev: array u32;
+  cnext: array u64;
+  cprev: array u64;
   ctable: array Cap::cap_t;
   (* Scheduler data *)
   tslots: array u64;
+  (* Processes data *)
+  ptable: array Proc::proc_t;
   (* Processes data *)
   ptable: array Proc::proc_t;
   (* Return data *)
   vregs: array u64; 
   errcode: Error::err_t;
 }
+  errcode: Error::err_t;
+}
 
 (* Kernel config *)
 
-def S3K_CAP_CNT : u32 = 32U
+defn S3K_CAP_CNT : u64 = 32UL
+defn S3K_PMP_CNT : u64 = 8UL
 
-def MIN_BLOCK_SIZE : u64 = 12UL
-def MAX_BLOCK_SIZE : u64 = 27UL
+defn MIN_BLOCK_SIZE : u64 = 12UL
+defn MAX_BLOCK_SIZE : u64 = 27UL
 
 (* Read and write to virtual registers *)
 
-def vreg_read(ks: state, rid: u32) : u64 =
+defn vreg_read(ks: state, rid: u64) : u64 =
   ks.vregs[rid]
 
-def vreg_write(ks: state, rid: u32, v: u64) : state =
+defn vreg_write(ks: state, rid: u64, v: u64) : state =
   let vregs = ks.vregs in
   let vregs = vregs[rid] <- v in
   ks.vregs <- vregs

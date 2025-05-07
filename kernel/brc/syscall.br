@@ -2,23 +2,66 @@ module Syscall
 
 type kstate = Kernel::state
 
-
-def valid_idx(idx: u32) : bool =
+defn valid_index(idx: u64) : bool =
   idx < Kernel::S3K_CAP_CNT
 
-def cap_read(ks: kstate, pid: Types::pid_t, idx: u32) : kstate =
-  let ptable = ks.ptable in
-  let proc = ptable[pid] in
-  let proc =
-    if !(valid_idx(idx)) then
-      proc.t0 <- (Error::INVALID_INDEX as u64)
-    else
-      let cid = Cap_ops::get_cap_idx_from_pid(pid, idx) in
-      let ks = Cap_ops::read(ks, cid) in
-      let proc = proc.a0 <- ks.vregs[0U] in
-      proc.t0 <- (ks.errcode as u64)
-  in
-  let ptable = ptable[pid] <- proc in
-  ks.ptable <- ptable
+defn valid_slot(slot: Types::pmp_slot_t) : bool =
+  slot < Kernel::S3K_PMP_CNT
 
-    
+defn cap_read(ks: kstate, pid: Types::pid_t, idx: u64) : kstate =
+  if valid_index(idx) then
+    let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
+    let ks = Cap_ops::read(ks, cidx) in
+    let ptable = ks.ptable in
+    let proc = ptable[pid] in
+    let proc = proc.a0 <- ks.vregs[0UL] in
+    let proc = proc.t0 <- ks.errcode as Types::word_t in
+    let ptable = ptable[pid] <- proc in
+    ks.ptable <- ptable
+  else
+    Ptable::set_proc_t0 (ks, pid, Error::INVALID_INDEX as Types::word_t)
+
+defn cap_move(ks: kstate, pid: Types::pid_t, src: u64, dst: u64) : kstate =
+  if valid_index(src) && valid_index(dst) then
+    let src_idx = Cap_ops::cap_idx_from_pid(pid, src) in
+    let dst_idx = Cap_ops::cap_idx_from_pid(pid, dst) in
+    let ks = Cap_ops::move(ks, src_idx, dst_idx) in
+    Ptable::set_proc_t0(ks, pid, ks.errcode as Types::word_t)
+  else
+    Ptable::set_proc_t0(ks, pid, Error::INVALID_INDEX as Types::word_t)
+
+defn cap_delete(ks: kstate, pid: Types::pid_t, idx: u64) : kstate =
+  if valid_index(idx) then
+    let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
+    let ks = Cap_ops::delete(ks, cidx) in
+    Ptable::set_proc_t0(ks, pid, ks.errcode as Types::word_t)
+  else
+    Ptable::set_proc_t0(ks, pid, Error::INVALID_INDEX as Types::word_t)
+  
+defn cap_derive(ks: kstate, pid: Types::pid_t, src: u64, dst: u64, raw: Cap::cap_t) : kstate =
+  if valid_index(src) && valid_index(dst) then
+    if Cap::is_valid(raw) then
+      let src_idx = Cap_ops::cap_idx_from_pid(pid, src) in
+      let dst_idx = Cap_ops::cap_idx_from_pid(pid, dst) in
+      let ks = Cap_ops::derive(ks, src_idx, dst_idx, raw) in
+      Ptable::set_proc_t0(ks, pid, ks.errcode as Types::word_t)
+    else
+      Ptable::set_proc_t0(ks, pid, Error::INVALID_DERIVATION as Types::word_t)
+  else
+    Ptable::set_proc_t0(ks, pid, Error::INVALID_INDEX as Types::word_t)
+
+defn pmp_load(ks: kstate, pid: Types::pid_t, idx: u64, slot: Types::pmp_slot_t) : kstate =
+  if valid_index(idx) && valid_slot(slot) then
+    let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
+    let ks = Pmp::load(ks, cidx, slot) in
+    Ptable::set_proc_t0(ks, pid, ks.errcode as Types::word_t)
+  else
+    Ptable::set_proc_t0(ks, pid, ks.errcode as Types::word_t)
+
+defn pmp_unload(ks: kstate, pid: Types::pid_t, idx: u64) : kstate =
+  if valid_index(idx) then
+    let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
+    let ks = Pmp::unload(ks, cidx) in
+    Ptable::set_proc_t0(ks, pid, ks.errcode as Types::word_t)
+  else
+    Ptable::set_proc_t0(ks, pid, Error::INVALID_INDEX as Types::word_t)

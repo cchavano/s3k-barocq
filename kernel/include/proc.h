@@ -27,7 +27,7 @@ typedef enum {
  *
  * @note This function should be called only once during system startup.
  */
-void proc_init(word_t payload);
+void ks_proc_init(word_t payload);
 
 /**
  * @brief Gets the process corresponding to a given process ID.

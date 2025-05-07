@@ -7,17 +7,20 @@
 #include "types.h"
 #include "uart/ns16550a.h"
 #include "kernel_core.h"
+#include "ks_init.h"
 
 extern char __uart[];
 
+extern struct Kernel_state ks;
 
-struct Kernel_state ks;
-static unsigned long long _vreg[8];
+// static unsigned long long _vreg[8];
 
 void kernel_init(void)
 {
 	kputs("# Kernel init");
-	ks.vregs = _vreg;
+
+	ks_vregs_init();
+
 	kputs("# Initialize capability table");
 	cap_t init_caps[6];
 	cap_mk_pmp(&init_caps[0], pmp_napot_encode(0x80010000, 0x10000),
@@ -28,13 +31,17 @@ void kernel_init(void)
 	cap_mk_monitor(&init_caps[4], 0, S3K_PROC_CNT);
 	cap_mk_channel(&init_caps[5], 0, S3K_CHAN_CNT);
 	ctable_init(init_caps, ARRAY_SIZE(init_caps));
+	ks_ctable_init(init_caps, ARRAY_SIZE(init_caps));
 
 	kputs("# Initialize scheduler");
 	sched_init();
+
 	kputs("# Initialize processes");
-	proc_init(0x80010000);
+	ks_proc_init(0x80010000);
+	
 	kputs("# Load INIT PMP");
 	cap_pmp_load(ctable_get(0, 0), 0);
+	Pmp_load(&ks, 0, 0);
 }
 
 void kputc(char c)

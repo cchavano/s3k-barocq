@@ -65,7 +65,7 @@ class Capability:
     def constr_fun(self):
         output = []
         parameters = [f"{name}: u64" for name in self.fields() if name != "pad"]
-        output.append(f"def mk_{self.name()}({', '.join(parameters)}) : u64 =")
+        output.append(f"defn mk_{self.name()}({', '.join(parameters)}) : u64 =")
         builder = f"  {self.type()}"
         for field in self.fields('word0'):
             if field == "pad":
@@ -82,16 +82,20 @@ class Capability:
         mask = (1 << self.size(field)) - 1
         output = []
         if self.size(field) == 1:
-            output.append(f"def {name}_get_{field}(cap: cap_t) : bool =")
+            output.append(f"defn {name}_get_{field}(cap: cap_t) : bool =")
             if offset:
+                output.append(f"  ((cap >> {offset}UL) & 0x1UL) as bool")
                 output.append(f"  ((cap >> {offset}UL) & 0x1UL) as bool")
             else:
                 output.append(f"  (cap & 0x1UL) as bool")
+                output.append(f"  (cap & 0x1UL) as bool")
         else:
-            output.append(f"def {name}_get_{field}(cap: cap_t) : u64 =")
+            output.append(f"defn {name}_get_{field}(cap: cap_t) : u64 =")
             if offset:
                 output.append(f"  (cap >> {offset}UL) & {hex(mask)}UL")
+                output.append(f"  (cap >> {offset}UL) & {hex(mask)}UL")
             else:
+                output.append(f"  (cap & {hex(mask)}UL)")
                 output.append(f"  (cap & {hex(mask)}UL)")
         return "\n".join(output)
 
@@ -102,30 +106,34 @@ class Capability:
         mask = (1 << self.size(field)) - 1
         output = []
         if self.size(field) == 1:
-            output.append(f"def {name}_set_{field}(cap: cap_t, v: bool) : u64 =")
+            output.append(f"defn {name}_set_{field}(cap: cap_t, v: bool) : u64 =")
             if offset:
+                output.append(f"  (cap & ~{hex(mask)}UL) | ((v as u64) << {offset}UL)")
                 output.append(f"  (cap & ~{hex(mask)}UL) | ((v as u64) << {offset}UL)")
             else:
                 output.append(f"  (cap & ~{hex(mask)}UL) | (v as u64)")
+                output.append(f"  (cap & ~{hex(mask)}UL) | (v as u64)")
         else:
-            output.append(f"def {name}_set_{field}(cap: cap_t, v: u64) : u64 =")
+            output.append(f"defn {name}_set_{field}(cap: cap_t, v: u64) : u64 =")
             if offset:
                 mask = mask << offset
                 output.append(f"  (cap & ~{hex(mask)}UL) | (v << {offset}UL)")
+                output.append(f"  (cap & ~{hex(mask)}UL) | (v << {offset}UL)")
             else:
+                output.append(f"  (cap & ~{hex(mask)}UL) | v")
                 output.append(f"  (cap & ~{hex(mask)}UL) | v")
         return "\n".join(output)
 
 
 # Open the file and load the file
 def main(capabilities):
-    output = ["module Cap\n", "type cap_t = u64\n", "(* Capability types *)"]
+    output = ["(* Capability types *)"]
     for i, cap in enumerate(capabilities):
-        output.append(f"def CAPTY_{cap['name'].upper()} : u64 = {i}UL")
+        output.append(f"defn CAPTY_{cap['name'].upper()} : u64= {i}UL")
     output.append("\n(* Number of capability types (incl. null cap) *)")
-    output.append(f"def CAPTY_COUNT : u64 = {len(capabilities)}UL")
+    output.append(f"defn CAPTY_COUNT : u64 = {len(capabilities)}UL")
     output.append("\n(* Capability type *)")
-    output.append(f"def get_type(cap: cap_t) : u64 = (cap & 0xfUL)")
+    output.append(f"defn get_type(cap: cap_t) : u64 = (cap & 0xfUL)")
     for cap in capabilities:
         output.append(f"\n(* {cap['name']} capability *)")
         capability = Capability(**cap)
@@ -143,6 +151,33 @@ def main(capabilities):
     output = output.replace("\t", " "*8)
     return output
 
+prelude = '''module Cap
+
+type cap_t = u64
+'''
+
+is_valid_cap ='''
+defn is_valid(cap: cap_t) : bool =
+  let cap_type = get_type(cap) in
+  if cap_type == CAPTY_TIME then
+    (time_get_bgn(cap) < time_get_end(cap))
+    && (time_get_bgn(cap) == time_get_mrk(cap))
+  else if cap_type == CAPTY_MEMORY then
+    memory_get_lck(cap)
+    && (memory_get_bgn(cap) < memory_get_end(cap))
+    && (memory_get_mrk(cap) == memory_get_mrk(cap))
+  else if cap_type == CAPTY_PMP then
+    pmp_get_used(cap) && (pmp_get_slot(cap) == 0UL)
+  else if cap_type == CAPTY_MONITOR then
+    (monitor_get_bgn(cap) < monitor_get_end(cap))
+    && (monitor_get_bgn(cap) == monitor_get_mrk(cap))
+  else if cap_type == CAPTY_CHANNEL then
+    (channel_get_bgn(cap) < channel_get_end(cap))
+    && (channel_get_bgn(cap) == channel_get_mrk(cap))
+  else if cap_type == CAPTY_SOCKET then
+    (socket_get_mode(cap) == 0UL) || (socket_get_mode(cap) == 1UL)
+  else
+    false'''
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -153,4 +188,6 @@ if __name__ == "__main__":
     parser.add_argument("output", type=argparse.FileType('w'))
     args = parser.parse_args()
     data = yaml.safe_load(args.yaml)
+    print(prelude, file=args.output)
     print(main(**data), file=args.output)
+    print(is_valid_cap, file=args.output)

@@ -83,6 +83,13 @@ typedef enum {
 	SYSCALL_SOCK_SEND,
 	SYSCALL_SOCK_RECV,
 	SYSCALL_SOCK_SENDRECV,
+
+	BR_SYSCALL_CAP_READ,
+	BR_SYSCALL_CAP_MOVE,
+	BR_SYSCALL_CAP_DELETE,
+	BR_SYSCALL_CAP_DERIVE,
+	BR_SYSCALL_PMP_LOAD,
+	BR_SYSCALL_PMP_UNLOAD,
 } syscall_t;
 
 typedef union {
@@ -258,10 +265,11 @@ typedef union cap {
 
 	struct {
 		capty_t type : 4;
+		uint16_t padding: 16;
 		rwx_t rwx : 3;
 		bool used : 1;
 		pmp_slot_t slot;
-		uint64_t addr : 48;
+		uint32_t addr : 32;
 	} pmp;
 
 	struct {

@@ -35,6 +35,13 @@ typedef enum {
 	S3K_SYS_SOCK_SEND,
 	S3K_SYS_SOCK_RECV,
 	S3K_SYS_SOCK_SENDRECV,
+
+	S3K_BR_SYS_CAP_READ,
+	S3K_BR_SYS_CAP_MOVE,
+	S3K_BR_SYS_CAP_DELETE,
+	S3K_BR_SYS_CAP_DERIVE,
+	S3K_BR_SYS_PMP_LOAD,
+	S3K_BR_SYS_PMP_UNLOAD,
 } s3k_syscall_t;
 
 typedef union {
@@ -670,4 +677,96 @@ s3k_reply_t s3k_try_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
 	reply.data[2] = a4;
 	reply.data[3] = a5;
 	return reply;
+}
+
+// System calls to the Barocq implementation
+
+s3k_err_t s3k_br_cap_read(s3k_cidx_t idx, s3k_cap_t *cap)
+{
+	sys_args_t args = {.cap_read = {idx}};
+	s3k_ret_t ret = DO_ECALL(S3K_SYS_CAP_READ, args, sizeof(args.cap_read));
+	cap->raw = ret.val;
+	return ret.err;
+}
+
+s3k_err_t s3k_br_cap_move(s3k_cidx_t src, s3k_cidx_t dst)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_cap_move(src, dst);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_err_t s3k_br_cap_delete(s3k_cidx_t idx)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_cap_delete(idx);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+
+s3k_err_t s3k_br_cap_derive(s3k_cidx_t src, s3k_cidx_t dst, s3k_cap_t ncap)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_cap_derive(src, dst, ncap);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_err_t s3k_br_pmp_load(s3k_cidx_t idx, s3k_pmp_slot_t slot)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_pmp_load(idx, slot);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_err_t s3k_br_pmp_unload(s3k_cidx_t idx)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_pmp_unload(idx);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_err_t s3k_br_try_cap_move(s3k_cidx_t src, s3k_cidx_t dst)
+{
+	sys_args_t args = {
+	    .cap_move = {src, dst}
+	  };
+	return DO_ECALL(S3K_BR_SYS_CAP_MOVE, args, sizeof(args.cap_move)).err;
+}
+
+s3k_err_t s3k_br_try_cap_delete(s3k_cidx_t idx)
+{
+	const sys_args_t args = {.cap_delete = {idx}};
+	return DO_ECALL(S3K_BR_SYS_CAP_DELETE, args, sizeof(args.cap_delete)).err;
+}
+
+s3k_err_t s3k_br_try_cap_derive(s3k_cidx_t src, s3k_cidx_t dst, s3k_cap_t ncap)
+{
+	sys_args_t args = {
+	    .cap_derive = {src, dst, ncap.raw}
+	      };
+	return DO_ECALL(S3K_BR_SYS_CAP_DERIVE, args, sizeof(args.cap_derive)).err;
+}
+
+s3k_err_t s3k_br_try_pmp_load(s3k_cidx_t idx, s3k_pmp_slot_t slot)
+{
+	sys_args_t args = {
+	    .pmp_load = {idx, slot}
+	   };
+	return DO_ECALL(S3K_BR_SYS_PMP_LOAD, args, sizeof(args.pmp_load)).err;
+}
+
+s3k_err_t s3k_br_try_pmp_unload(s3k_cidx_t idx)
+{
+	sys_args_t args = {.pmp_unload = {idx}};
+	return DO_ECALL(S3K_BR_SYS_PMP_UNLOAD, args, sizeof(args.pmp_unload)).err;
 }

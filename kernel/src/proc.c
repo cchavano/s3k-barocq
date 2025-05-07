@@ -1,18 +1,19 @@
 /* See LICENSE file for copyright and license details. */
 #include "proc.h"
-
+#include "kernel_core.h"
 #include "cap/pmp.h"
 #include "csr.h"
 #include "kassert.h"
 #include "rtc.h"
 
+extern struct Kernel_state ks;
+
 static uint32_t _pmpcfg[S3K_PROC_CNT][S3K_PMP_CNT];
 static uint64_t _pmpaddr[S3K_PROC_CNT][S3K_PMP_CNT];
 static proc_t procs[S3K_PROC_CNT];
 static proc_t *_procs[S3K_PROC_CNT];
-extern struct Kernel_state ks;
 
-void proc_init(word_t payload)
+void ks_proc_init(word_t payload)
 {
 	for (uint64_t i = 0; i < S3K_PROC_CNT; i++) {
 		procs[i].pid = i;
@@ -30,8 +31,8 @@ void proc_init(word_t payload)
 proc_t *proc_get(pid_t pid)
 {
 	KASSERT(pid < S3K_PROC_CNT);
-	KASSERT(procs[pid].pid == pid);
-	return &procs[pid];
+	KASSERT(ks.ptable[pid]->pid == pid);
+	return ks.ptable[pid];
 }
 
 proc_state_t proc_get_state(proc_t *proc)

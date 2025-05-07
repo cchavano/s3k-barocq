@@ -1,13 +1,17 @@
 module Sched
+module Sched
 
 type kstate = Kernel::state
+type kstate = Kernel::state
 
-def delete(ks: kstate, from: u64, to: u64) : kstate =
+defn delete(ks: kstate, from: u64, to: u64) : kstate =
   let mask = 0xffffUL in
   (* MISSING CODE *)
   ks
+  ks
 
-def update(ks: kstate, pid: u64, end: u64, from: u64, to: u64) : kstate =
+defn update(ks: kstate, pid: u64, end: u64, from: u64, to: u64) : kstate =
   let mask = 0xffffUL in
   (* MISSING CODE *)
+  ks
   ks

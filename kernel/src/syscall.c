@@ -12,8 +12,12 @@
 #include "sched.h"
 #include "trap.h"
 #include "types.h"
+#include "kprint.h"
+#include "kernel_core.h"
 
 #include <stdbool.h>
+
+extern struct Kernel_state ks;
 
 static bool _valid_idx(cidx_t idx)
 {
@@ -442,6 +446,44 @@ proc_t *_sock_sendrecv(proc_t *const p, const sys_args_t *args)
 	return next;
 }
 
+proc_t *_br_cap_read(proc_t *const p, const sys_args_t *args)
+{
+	struct Kernel_state *ks1 = Syscall_cap_read(&ks, p->pid, args->cap_read.idx);
+	return ks1->ptable[p->pid];
+}
+
+proc_t *_br_cap_move(proc_t *const p, const sys_args_t *args)
+{
+	struct Kernel_state *ks1 = Syscall_cap_move(&ks, p->pid, args->cap_move.src_idx, args->cap_move.dst_idx);
+	return ks1->ptable[p->pid];
+}
+
+proc_t *_br_cap_delete(proc_t *const p, const sys_args_t *args)
+{
+	struct Kernel_state *ks1 = Syscall_cap_delete(&ks, p->pid, args->cap_delete.idx);
+	return ks1->ptable[p->pid];
+}
+
+proc_t *_br_cap_derive(proc_t *const p, const sys_args_t *args)
+{
+	kprintf("KERNEL_SYS_BR_CAP_DERIVE\n");
+	struct Kernel_state *ks1 = Syscall_cap_derive(&ks, p->pid, args->cap_derive.src_idx, args->cap_derive.dst_idx, args->cap_derive.cap_raw);
+	return ks1->ptable[p-> pid];
+}
+
+proc_t *_br_pmp_load(proc_t *const p, const sys_args_t *args)
+{
+	kprintf("KERNEL_SYS_BR_PMP_LOAD\n");
+	struct Kernel_state *ks1 = Syscall_pmp_load(&ks, p->pid, args->pmp_load.idx, args->pmp_load.slot);
+	return ks1->ptable[p->pid];
+}
+
+proc_t *_br_pmp_unload(proc_t *const p, const sys_args_t *args)
+{
+	struct Kernel_state *ks1 = Syscall_pmp_unload(&ks, p->pid, args->pmp_unload.idx);
+	return ks1->ptable[p->pid];
+}
+
 proc_t *syscall_handler(proc_t *proc)
 {
 	// System call arguments.
@@ -501,6 +543,18 @@ proc_t *syscall_handler(proc_t *proc)
 		return _sock_recv(proc, args);
 	case SYSCALL_SOCK_SENDRECV:
 		return _sock_sendrecv(proc, args);
+	case BR_SYSCALL_CAP_READ:
+		return _br_cap_read(proc, args);
+	case BR_SYSCALL_CAP_MOVE:
+		return _br_cap_move(proc, args);
+	case BR_SYSCALL_CAP_DELETE:
+		return _br_cap_delete(proc, args);
+	case BR_SYSCALL_CAP_DERIVE:
+		return _br_cap_derive(proc, args);
+	case BR_SYSCALL_PMP_LOAD:
+		return _br_pmp_load(proc, args);
+	case BR_SYSCALL_PMP_UNLOAD:
+		return _br_pmp_unload(proc, args);
 	default:
 		proc->t0 = ERR_INVALID_SYSCALL;
 		return proc;

@@ -35,6 +35,7 @@ sources = files(
 	'src/trap.c',
 	'src/rtc.c',
 	'src/csr.c',
+	'src/ks_init.c',
 	platdir / 'plat.c',
 )
 

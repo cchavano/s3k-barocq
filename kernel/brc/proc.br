@@ -2,7 +2,7 @@ module Proc
 
 type proc_state_t = u64
 
-struct proc_t = {
+type proc_t = {
   state: proc_state_t;
   (* Registers ===== *)
   pc: Types::word_t; ra: Types::word_t; sp: Types::word_t; gp: Types::word_t; tp: Types::word_t;
@@ -16,27 +16,28 @@ struct proc_t = {
   ecause: Types::word_t; eval: Types::word_t;
   servtime: Types::word_t;
   (* =============== *)
-  pmpcfg: array u32;
+  pmpcfg: array u64;
   pmpaddr: array u64;
-  pid: u32;
+  pid: Types::pid_t;
   timeout: u64;
   serv_time: u64;
 }
 
-def PSF_BUSY : u64 = 1UL
-def PSF_BLOCKED : u64 = 2UL
-def PSF_SUSPENDED : u64 = 4UL
+defn PSF_BUSY : u64 = 1UL
+defn PSF_BLOCKED : u64 = 2UL
+defn PSF_SUSPENDED : u64 = 4UL
 
-def suspend(proc: proc_t) : proc_t =
+defn suspend(proc: proc_t) : proc_t =
   let prev = proc.state in
   let proc = proc.state <- (proc.state | PSF_SUSPENDED) in
   if (prev & PSF_BLOCKED) as bool then
     let proc = proc.state <- PSF_SUSPENDED in
-    proc.t0 <- (Error::SUSPENDED as u64)
+    let regs = proc.regs.t0 <- (Error::ERR_SUSPENDED as u32) in
+    proc.regs <- regs
   else
     proc
 
-def resume(proc: proc_t) : proc_t =
+defn resume(proc: proc_t) : proc_t =
   let proc =
     if proc.state == PSF_SUSPENDED then
       proc.timeout <- 0UL
@@ -45,24 +46,24 @@ def resume(proc: proc_t) : proc_t =
   in
   proc.state <- proc.state & (~PSF_SUSPENDED)
 
-def release(proc: proc_t) : proc_t =
+defn release(proc: proc_t) : proc_t =
   proc.state <- proc.state & (~PSF_BUSY)
 
-def is_suspended(proc: proc_t) : bool =
+defn is_suspended(proc: proc_t) : bool =
   proc.state == PSF_SUSPENDED
 
-def pmp_avail(proc: proc_t, slot: Types::pmp_slot_t) : bool =
-  proc.pmpcfg[slot] == 0U
+defn pmp_avail(proc: proc_t, slot: Types::pmp_slot_t) : bool =
+  proc.pmpcfg[slot] == 0UL
 
-def pmp_load(proc: proc_t, slot: Types::pmp_slot_t, rwx: Types::pmp_slot_t, addr: Types::napot_t) : proc_t =
+defn pmp_load(proc: proc_t, slot: Types::pmp_slot_t, rwx: Types::pmp_slot_t, addr: Types::napot_t) : proc_t =
   let pcfg = proc.pmpcfg in
   let paddr = proc.pmpaddr in
-  let pcfg = pcfg[slot] <- (rwx | 0x18U) in
+  let pcfg = pcfg[slot] <- (rwx | 0x18UL) in
   let paddr = paddr[slot] <- addr in
-  let proc = proc.pmpcfg <- pcfg in
-  proc.pmpaddr <- paddr
+  let proc = proc.pmp_cfg <- pcfg in
+  proc.pmp_addr <- paddr
 
-def pmp_unload(proc: proc_t, slot: Types::pmp_slot_t) : proc_t =
+defn pmp_unload(proc: proc_t, slot: Types::pmp_slot_t) : proc_t =
   let pcfg = proc.pmpcfg in
-  let pcfg = pcfg[slot] <- 0U in
+  let pcfg = pcfg[slot] <- 0UL in
   proc.pmpcfg <- pcfg

@@ -10,9 +10,9 @@ void setup_uart(uint64_t uart_idx)
 {
 	uint64_t uart_addr = s3k_napot_encode(UART_BASE_ADDR, 0x8);
 	// Derive a PMP capability for accessing UART
-	s3k_cap_derive(CAP_UART, uart_idx, s3k_mk_pmp(uart_addr, S3K_MEM_RW));
+	s3k_br_cap_derive(CAP_UART, uart_idx, s3k_mk_pmp(uart_addr, S3K_MEM_RW));
 	// Load the derive PMP capability to PMP configuration
-	s3k_pmp_load(uart_idx, 1);
+	s3k_br_pmp_load(uart_idx, 1);
 	// Synchronize PMP unit (hardware) with PMP configuration
 	// false => not full synchronization.
 	s3k_sync_mem();
