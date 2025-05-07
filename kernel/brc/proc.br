@@ -37,11 +37,15 @@ def suspend(proc: proc_t) : proc_t =
     proc.t0 <- (Error::ERR_SUSPENDED as u64)
   else
     proc
+
 def resume(proc: proc_t) : proc_t =
-  if proc.state == PSF_SUSPENDED then
-    proc.timeout <- 0UL
-  else
-    proc.state <- proc.state & (~PSF_SUSPENDED)
+  let proc =
+    if proc.state == PSF_SUSPENDED then
+      proc.timeout <- 0UL
+    else
+      proc
+  in
+  proc.state <- proc.state & (~PSF_SUSPENDED)
 
 def release(proc: proc_t) : proc_t =
   proc.state <- proc.state & (~PSF_BUSY)
