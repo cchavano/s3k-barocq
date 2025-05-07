@@ -1,0 +1,17 @@
+module Error
+
+(* Error codes *)
+
+type err_t = i32
+
+def SUCCESS : err_t = 0
+def ERR_EMPTY : err_t = 1
+def ERR_SRC_EMPTY : err_t = 2
+def ERR_DST_OCCUPIED : err_t = 3
+def ERR_INVALID_DERIVATION : err_t = 5
+def ERR_INVALID_MONITOR : err_t = 6
+def ERR_INVALID_STATE : err_t = 8
+def ERR_INVALID_PMP : err_t = 9
+def ERR_INVALID_CAPABILITY : err_t = 14
+def ERR_SUSPENDED : err_t = 18
+def CONTINUE : err_t = -1

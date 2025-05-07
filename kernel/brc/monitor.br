@@ -1,0 +1,37 @@
+module Monitor
+
+type kstate = Kernel::state
+
+def check(ks: kstate, mon: u32, pid: Types::pid_t, check_suspended: bool) : Error::err_t =
+  let mcap = ks.ctable[mon] in
+  let mcap_type = Cap::get_type(mcap) in
+  if (mcap_type != Cap::CAPTY_MONITOR)
+      || (Cap::monitor_get_mrk(mcap) > (pid as u64))
+      || ((pid as u64) >= Cap::monitor_get_end(mcap))
+  then
+    Error::ERR_INVALID_MONITOR
+  else if (check_suspended && !(Ptable::is_suspended(ks, pid as u32))) then
+    Error::ERR_INVALID_STATE
+  else
+    Error::SUCCESS
+  
+def check_move(ks: kstate, mon: u32, src: u32, dst: u32) : Error::err_t =
+  let mon_pid = Cap_ops::cap_pid(mon) in
+  let src_pid = Cap_ops::cap_pid(src) in
+  let dst_pid = Cap_ops::cap_pid(dst) in
+  let err =
+    if mon_pid != src_pid then check(ks, mon, src_pid, true)
+    else Error::SUCCESS
+  in
+  if err == Error::SUCCESS then
+    if mon_pid != dst_pid then check(ks, mon, src_pid, true)
+    else Error::SUCCESS
+  else
+    err
+
+def cap_resume(ks: kstate, mon: u32, pid: Types::pid_t) : kstate =
+  let err = check(ks, mon, pid, false) in
+  if err == Error::SUCCESS then
+    Ptable::resume(ks, pid)
+  else
+    ks.errcode <- err

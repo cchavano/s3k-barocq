@@ -1,4 +1,6 @@
-module Kernel;;
+module Kernel
+
+(* Kernel data structure *)
 
 struct state = {
   (* Capability data *)
@@ -7,33 +9,26 @@ struct state = {
   ctable: array Cap::cap_t;
   (* Scheduler data *)
   tslots: array u64;
+  (* Processes data *)
+  ptable: array Proc::proc_t;
   (* Return data *)
   vregs: array u64; 
-  errcode: i32;
-};;
+  errcode: Error::err_t;
+}
 
 (* Kernel config *)
 
-def S3K_CAP_CNT : u32 = 32U;;
-def S3K_MIN_HART : u64 = 0UL;;
+def S3K_CAP_CNT : u32 = 32U
 
-def MIN_BLOCK_SIZE : u64 = 12UL;;
-def MAX_BLOCK_SIZE : u64 = 27UL;;
+def MIN_BLOCK_SIZE : u64 = 12UL
+def MAX_BLOCK_SIZE : u64 = 27UL
 
-(* Error codes *)
-
-def SUCCESS : i32 = 0;;
-def ERR_EMPTY : i32 = 1;;
-def ERR_SRC_EMPTY : i32 = 2;;
-def ERR_DST_OCCUPIED : i32 = 3;;
-def ERR_INVALID_DERIVATION : i32 = 5;;
-def ERR_INVALID_CAPABILITY : i32 = 14;;
-def CONTINUE : i32 = -1;;
+(* Read and write to virtual registers *)
 
 def vreg_read(ks: state, rid: u32) : u64 =
-  ks.vregs[rid];;
+  ks.vregs[rid]
 
 def vreg_write(ks: state, rid: u32, v: u64) : state =
   let vregs = ks.vregs in
   let vregs = vregs[rid] <- v in
-  ks.vregs <- vregs;;
+  ks.vregs <- vregs

@@ -1,0 +1,7 @@
+module Types
+
+type pmp_slot_t = u32
+
+type napot_t = u64
+
+type pid_t = u32

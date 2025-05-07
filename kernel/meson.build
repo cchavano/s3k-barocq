@@ -2,7 +2,7 @@ project(
 	's3k',
 	'c',
 	version : '0.1',
-	meson_version : '>= 1.5.1',
+	meson_version : '>= 1.4.1',
 	default_options : [
 		'buildtype=debug',
 		'warning_level=2',
@@ -58,12 +58,24 @@ link_args = [
 
 barocq = find_program('barocq', required : true)
 
-kernel_br = files ('brc/kernel.br', 'brc/capgen/cap.br')
+kernel_br = files(
+	'brc/error.br',
+	'brc/types.br',
+	'brc/capgen/cap.br',
+	'brc/proc.br',
+	'brc/kernel.br',
+	'brc/sched.br',
+	'brc/ctable.br',
+	'brc/cap_ops.br',
+	'brc/ptable.br',
+	'brc/pmp.br',
+	'brc/monitor.br',
+)
 
 kernel_c = custom_target(
 	'kernel_c',
 	input : kernel_br,
-	output : ['kernel.c', 'kernel.h'],
+	output : ['kernel_core.c', 'kernel_core.h'],
 	command : [
 		barocq,
 		'@INPUT@',

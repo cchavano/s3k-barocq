@@ -1,0 +1,49 @@
+module Ptable
+
+type kstate = Kernel::state
+
+def acquire(ks: kstate, time: u64, pid: u32) : kstate =
+  let expected = ks.ptable[pid].state in
+  let desired = Proc::PSF_BUSY in
+  if (expected & (Proc::PSF_BUSY | Proc::PSF_SUSPENDED)) as bool then
+    Kernel::vreg_write(ks, 0U, false as u64)
+  else if time < ks.ptable[pid].timeout then
+    Kernel::vreg_write(ks, 0U, false as u64)
+  else
+    let ptable = ks.ptable in
+    let proc = ptable[pid] in
+    let proc = proc.state <- desired in
+    let ptable = ptable[pid] <- proc in
+    let ks = ks.ptable <- ptable in
+    Kernel::vreg_write(ks, 0U, true as u64)
+
+def suspend(ks: kstate, pid: u32) : kstate =
+  let proc = Proc::suspend(ks.ptable[pid]) in
+  let ptable = ks.ptable[pid] <- proc in
+  ks.ptable <- ptable
+
+def resume(ks: kstate, pid: u32) : kstate =
+  let proc = Proc::resume(ks.ptable[pid]) in
+  let ptable = ks.ptable[pid] <- proc in
+  ks.ptable <- ptable
+
+def release(ks: kstate, pid: u32) : kstate =
+  let proc = Proc::release(ks.ptable[pid]) in
+  let ptable = ks.ptable[pid] <- proc in
+  ks.ptable <- ptable
+
+def is_suspended(ks: kstate, pid: u32) : bool =
+  Proc::is_suspended(ks.ptable[pid])
+
+def pmp_avail(ks: kstate, pid: u32, slot: Types::pmp_slot_t) : bool =
+  Proc::pmp_avail(ks.ptable[pid], slot)
+
+def pmp_load(ks: kstate, pid: u32, slot: Types::pmp_slot_t, rwx: Types::pmp_slot_t, addr: Types::napot_t) : kstate =
+  let proc = Proc::pmp_load(ks.ptable[pid], slot, rwx, addr) in
+  let ptable = ks.ptable[pid] <- proc in
+  ks.ptable <- ptable
+
+def pmp_unload(ks: kstate, pid: u32, slot: Types::pmp_slot_t) : kstate =
+  let proc = Proc::pmp_unload(ks.ptable[pid], slot) in
+  let ptable = ks.ptable[pid] <- proc in
+  ks.ptable <- ptable

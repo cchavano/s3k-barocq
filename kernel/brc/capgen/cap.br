@@ -1,142 +1,142 @@
-module Cap;;
+module Cap
 
-type cap_t = u64;;
+type cap_t = u64
 
 (* Capability types *)
-def CAPTY_NONE : u64 = 0UL;;
-def CAPTY_TIME : u64 = 1UL;;
-def CAPTY_MEMORY : u64 = 2UL;;
-def CAPTY_PMP : u64 = 3UL;;
-def CAPTY_MONITOR : u64 = 4UL;;
-def CAPTY_CHANNEL : u64 = 5UL;;
-def CAPTY_SOCKET : u64 = 6UL;;
+def CAPTY_NONE : u64 = 0UL
+def CAPTY_TIME : u64 = 1UL
+def CAPTY_MEMORY : u64 = 2UL
+def CAPTY_PMP : u64 = 3UL
+def CAPTY_MONITOR : u64 = 4UL
+def CAPTY_CHANNEL : u64 = 5UL
+def CAPTY_SOCKET : u64 = 6UL
 
 (* Number of capability types (incl. null cap) *)
-def CAPTY_COUNT : u64 = 7UL;;
+def CAPTY_COUNT : u64 = 7UL
 
 (* Capability type *)
-def get_type(cap: cap_t) : u64 = (cap & 0xfUL);;
+def get_type(cap: cap_t) : u64 = (cap & 0xfUL)
 
 (* none capability *)
 def mk_none() : u64 =
-  CAPTY_NONE;;
+  CAPTY_NONE
 
 (* time capability *)
 def mk_time(hart: u64, bgn: u64, mrk: u64, end: u64) : u64 =
-  CAPTY_TIME | end << 48UL | mrk << 32UL | bgn << 16UL | hart << 8UL;;
+  CAPTY_TIME | end << 48UL | mrk << 32UL | bgn << 16UL | hart << 8UL
 def time_get_hart(cap: cap_t) : u64 =
-  (cap >> 8UL) & 0xffUL;;
+  (cap >> 8UL) & 0xffUL
 def time_get_bgn(cap: cap_t) : u64 =
-  (cap >> 16UL) & 0xffffUL;;
+  (cap >> 16UL) & 0xffffUL
 def time_get_mrk(cap: cap_t) : u64 =
-  (cap >> 32UL) & 0xffffUL;;
+  (cap >> 32UL) & 0xffffUL
 def time_get_end(cap: cap_t) : u64 =
-  (cap >> 48UL) & 0xffffUL;;
+  (cap >> 48UL) & 0xffffUL
 def time_set_hart(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xff00UL) | (v << 8UL);;
+  (cap & ~0xff00UL) | (v << 8UL)
 def time_set_bgn(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff0000UL) | (v << 16UL);;
+  (cap & ~0xffff0000UL) | (v << 16UL)
 def time_set_mrk(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff00000000UL) | (v << 32UL);;
+  (cap & ~0xffff00000000UL) | (v << 32UL)
 def time_set_end(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff000000000000UL) | (v << 48UL);;
+  (cap & ~0xffff000000000000UL) | (v << 48UL)
 
 (* memory capability *)
 def mk_memory(rwx: u64, lck: u64, tag: u64, bgn: u64, mrk: u64, end: u64) : u64 =
-  CAPTY_MEMORY | end << 48UL | mrk << 32UL | bgn << 16UL | tag << 8UL | lck << 7UL | rwx << 4UL;;
+  CAPTY_MEMORY | end << 48UL | mrk << 32UL | bgn << 16UL | tag << 8UL | lck << 7UL | rwx << 4UL
 def memory_get_rwx(cap: cap_t) : u64 =
-  (cap >> 4UL) & 0x7UL;;
+  (cap >> 4UL) & 0x7UL
 def memory_get_lck(cap: cap_t) : bool =
-  ((cap >> 7UL) & 0x1UL) as bool;;
+  ((cap >> 7UL) & 0x1UL) as bool
 def memory_get_tag(cap: cap_t) : u64 =
-  (cap >> 8UL) & 0xffUL;;
+  (cap >> 8UL) & 0xffUL
 def memory_get_bgn(cap: cap_t) : u64 =
-  (cap >> 16UL) & 0xffffUL;;
+  (cap >> 16UL) & 0xffffUL
 def memory_get_mrk(cap: cap_t) : u64 =
-  (cap >> 32UL) & 0xffffUL;;
+  (cap >> 32UL) & 0xffffUL
 def memory_get_end(cap: cap_t) : u64 =
-  (cap >> 48UL) & 0xffffUL;;
+  (cap >> 48UL) & 0xffffUL
 def memory_set_rwx(cap: cap_t, v: u64) : u64 =
-  (cap & ~0x70UL) | (v << 4UL);;
+  (cap & ~0x70UL) | (v << 4UL)
 def memory_set_lck(cap: cap_t, v: bool) : u64 =
-  (cap & ~0x1UL) | ((v as u64) << 7UL);;
+  (cap & ~0x1UL) | ((v as u64) << 7UL)
 def memory_set_tag(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xff00UL) | (v << 8UL);;
+  (cap & ~0xff00UL) | (v << 8UL)
 def memory_set_bgn(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff0000UL) | (v << 16UL);;
+  (cap & ~0xffff0000UL) | (v << 16UL)
 def memory_set_mrk(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff00000000UL) | (v << 32UL);;
+  (cap & ~0xffff00000000UL) | (v << 32UL)
 def memory_set_end(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff000000000000UL) | (v << 48UL);;
+  (cap & ~0xffff000000000000UL) | (v << 48UL)
 
 (* pmp capability *)
 def mk_pmp(rwx: u64, used: u64, slot: u64, addr: u64) : u64 =
-  CAPTY_PMP | addr << 16UL | slot << 8UL | used << 7UL | rwx << 4UL;;
+  CAPTY_PMP | addr << 16UL | slot << 8UL | used << 7UL | rwx << 4UL
 def pmp_get_rwx(cap: cap_t) : u64 =
-  (cap >> 4UL) & 0x7UL;;
+  (cap >> 4UL) & 0x7UL
 def pmp_get_used(cap: cap_t) : bool =
-  ((cap >> 7UL) & 0x1UL) as bool;;
+  ((cap >> 7UL) & 0x1UL) as bool
 def pmp_get_slot(cap: cap_t) : u64 =
-  (cap >> 8UL) & 0xffUL;;
+  (cap >> 8UL) & 0xffUL
 def pmp_get_addr(cap: cap_t) : u64 =
-  (cap >> 16UL) & 0xffffffffffffUL;;
+  (cap >> 16UL) & 0xffffffffffffUL
 def pmp_set_rwx(cap: cap_t, v: u64) : u64 =
-  (cap & ~0x70UL) | (v << 4UL);;
+  (cap & ~0x70UL) | (v << 4UL)
 def pmp_set_used(cap: cap_t, v: bool) : u64 =
-  (cap & ~0x1UL) | ((v as u64) << 7UL);;
+  (cap & ~0x1UL) | ((v as u64) << 7UL)
 def pmp_set_slot(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xff00UL) | (v << 8UL);;
+  (cap & ~0xff00UL) | (v << 8UL)
 def pmp_set_addr(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffffffffffff0000UL) | (v << 16UL);;
+  (cap & ~0xffffffffffff0000UL) | (v << 16UL)
 
 (* monitor capability *)
 def mk_monitor(bgn: u64, mrk: u64, end: u64) : u64 =
-  CAPTY_MONITOR | end << 48UL | mrk << 32UL | bgn << 16UL;;
+  CAPTY_MONITOR | end << 48UL | mrk << 32UL | bgn << 16UL
 def monitor_get_bgn(cap: cap_t) : u64 =
-  (cap >> 16UL) & 0xffffUL;;
+  (cap >> 16UL) & 0xffffUL
 def monitor_get_mrk(cap: cap_t) : u64 =
-  (cap >> 32UL) & 0xffffUL;;
+  (cap >> 32UL) & 0xffffUL
 def monitor_get_end(cap: cap_t) : u64 =
-  (cap >> 48UL) & 0xffffUL;;
+  (cap >> 48UL) & 0xffffUL
 def monitor_set_bgn(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff0000UL) | (v << 16UL);;
+  (cap & ~0xffff0000UL) | (v << 16UL)
 def monitor_set_mrk(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff00000000UL) | (v << 32UL);;
+  (cap & ~0xffff00000000UL) | (v << 32UL)
 def monitor_set_end(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff000000000000UL) | (v << 48UL);;
+  (cap & ~0xffff000000000000UL) | (v << 48UL)
 
 (* channel capability *)
 def mk_channel(bgn: u64, mrk: u64, end: u64) : u64 =
-  CAPTY_CHANNEL | end << 48UL | mrk << 32UL | bgn << 16UL;;
+  CAPTY_CHANNEL | end << 48UL | mrk << 32UL | bgn << 16UL
 def channel_get_bgn(cap: cap_t) : u64 =
-  (cap >> 16UL) & 0xffffUL;;
+  (cap >> 16UL) & 0xffffUL
 def channel_get_mrk(cap: cap_t) : u64 =
-  (cap >> 32UL) & 0xffffUL;;
+  (cap >> 32UL) & 0xffffUL
 def channel_get_end(cap: cap_t) : u64 =
-  (cap >> 48UL) & 0xffffUL;;
+  (cap >> 48UL) & 0xffffUL
 def channel_set_bgn(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff0000UL) | (v << 16UL);;
+  (cap & ~0xffff0000UL) | (v << 16UL)
 def channel_set_mrk(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff00000000UL) | (v << 32UL);;
+  (cap & ~0xffff00000000UL) | (v << 32UL)
 def channel_set_end(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff000000000000UL) | (v << 48UL);;
+  (cap & ~0xffff000000000000UL) | (v << 48UL)
 
 (* socket capability *)
 def mk_socket(mode: u64, perm: u64, chan: u64, tag: u64) : u64 =
-  CAPTY_SOCKET | tag << 32UL | chan << 16UL | perm << 8UL | mode << 4UL;;
+  CAPTY_SOCKET | tag << 32UL | chan << 16UL | perm << 8UL | mode << 4UL
 def socket_get_mode(cap: cap_t) : u64 =
-  (cap >> 4UL) & 0xfUL;;
+  (cap >> 4UL) & 0xfUL
 def socket_get_perm(cap: cap_t) : u64 =
-  (cap >> 8UL) & 0xffUL;;
+  (cap >> 8UL) & 0xffUL
 def socket_get_chan(cap: cap_t) : u64 =
-  (cap >> 16UL) & 0xffffUL;;
+  (cap >> 16UL) & 0xffffUL
 def socket_get_tag(cap: cap_t) : u64 =
-  (cap >> 32UL) & 0xffffffffUL;;
+  (cap >> 32UL) & 0xffffffffUL
 def socket_set_mode(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xf0UL) | (v << 4UL);;
+  (cap & ~0xf0UL) | (v << 4UL)
 def socket_set_perm(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xff00UL) | (v << 8UL);;
+  (cap & ~0xff00UL) | (v << 8UL)
 def socket_set_chan(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffff0000UL) | (v << 16UL);;
+  (cap & ~0xffff0000UL) | (v << 16UL)
 def socket_set_tag(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xffffffff00000000UL) | (v << 32UL);;
+  (cap & ~0xffffffff00000000UL) | (v << 32UL)

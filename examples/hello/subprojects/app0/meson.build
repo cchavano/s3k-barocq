@@ -2,7 +2,7 @@ project(
 	'app0',
 	'c',
 	version : '0.1',
-	meson_version : '>= 1.5.1',
+	meson_version : '>= 1.4.1',
 	default_options : [
 		'buildtype=release',
 		'warning_level=2',
