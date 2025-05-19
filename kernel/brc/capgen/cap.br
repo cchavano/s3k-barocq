@@ -1,7 +1,5 @@
 module Cap
-module Cap
 
-type cap_t = u64
 type cap_t = u64
 
 (* Capability types *)

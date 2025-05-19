@@ -1,9 +1,6 @@
 module Kernel
 
 (* Kernel data structure *)
-module Kernel
-
-(* Kernel data structure *)
 
 type state = {
   (* Capability data *)
@@ -14,12 +11,8 @@ type state = {
   tslots: array u64;
   (* Processes data *)
   ptable: array Proc::proc_t;
-  (* Processes data *)
-  ptable: array Proc::proc_t;
   (* Return data *)
   vregs: array u64; 
-  errcode: Error::err_t;
-}
   errcode: Error::err_t;
 }
 

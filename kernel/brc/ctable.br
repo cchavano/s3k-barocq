@@ -1,7 +1,5 @@
 module Ctable
-module Ctable
 
-type kstate = Kernel::state
 type kstate = Kernel::state
 
 defn is_empty_cap(ks: kstate, cidx: u64) : bool =
@@ -30,7 +28,6 @@ defn move(ks: kstate, src: u64, dst: u64) : kstate =
     let ks = set_prev(ks, dst, ks.cprev[src]) in
     let ks = set_next(ks, dst, ks.cnext[src]) in
     let ks = set_next(ks, ks.cprev[dst], dst) in
-    set_prev(ks, ks.cnext[dst], dst)
     set_prev(ks, ks.cnext[dst], dst)
 
 defn delete(ks: kstate, cidx: u64) : kstate =

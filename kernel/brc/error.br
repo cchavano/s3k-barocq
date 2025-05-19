@@ -2,7 +2,7 @@ module Error
 
 (* Error codes *)
 
-type err_t = i32
+type err_t = i64
 
 defn SUCCESS : err_t = 0L
 defn EMPTY : err_t = 1L

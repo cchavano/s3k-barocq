@@ -1,9 +1,6 @@
 module Cap_ops
 
 type kstate = Kernel::state
-module Cap_ops
-
-type kstate = Kernel::state
 
 defn cap_pid(cidx: u64) : Types::pid_t =
   cidx / Kernel::S3K_CAP_CNT
@@ -42,9 +39,7 @@ defn revoke_memory(ks: kstate, parent: u64) : kstate =
         && !(Cap::memory_get_lck(pcap))
     then
       ks.errcode <- Error::SUCCESS
-      ks.errcode <- Error::SUCCESS
     else
-      ks.errcode <- Error::CONTINUE
       ks.errcode <- Error::CONTINUE
   else
     let base = pmp_napot_decode_base(Cap::pmp_get_addr(ccap)) in
@@ -60,12 +55,10 @@ defn revoke_memory(ks: kstate, parent: u64) : kstate =
           ks
       in
       ks.errcode <- Error::CONTINUE
-      ks.errcode <- Error::CONTINUE
     else
       let pcap = Cap::memory_set_mrk(pcap, Cap::memory_get_bgn(pcap)) in
       let pcap = Cap::memory_set_lck(pcap, true) in
       let ks = Ctable::set_cap(ks, parent, pcap) in
-      ks.errcode <- Error::SUCCESS
       ks.errcode <- Error::SUCCESS
 
 defn derive_memory(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t) : kstate =
@@ -82,7 +75,6 @@ defn derive_memory(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t) : kstate =
     let ks = Ctable::set_cap(ks, src, cap) in
     let ks = Ctable::insert(ks, dst, cap, src) in
     ks.errcode <- Error::SUCCESS
-    ks.errcode <- Error::SUCCESS
   else
     let pmp_begin = pmp_napot_decode_base(Cap::pmp_get_addr(ncap)) in
     let pmp_size = pmp_napot_decode_size(Cap::pmp_get_addr(ncap)) in
@@ -98,9 +90,8 @@ defn derive_memory(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t) : kstate =
       let ks = Ctable::set_cap(ks, src, cap) in
       let ks = Ctable::insert(ks, dst, ncap, src) in
       ks.errcode <- Error::SUCCESS
-      ks.errcode <- Error::SUCCESS
     else
-      ks.errcode <- Error::ERR_INVALID_DERIVATION
+      ks.errcode <- Error::INVALID_DERIVATION
 
 (* Pmp capability *)
 
@@ -148,9 +139,7 @@ defn revoke_time(ks: kstate, parent: u64)  : kstate =
     let ks = Ctable::set_cap(ks, parent, pcap) in
     if (Cap::time_get_mrk(pcap) == Cap::time_get_bgn(pcap)) then
       ks.errcode <- Error::SUCCESS
-      ks.errcode <- Error::SUCCESS
     else
-      ks.errcode <- Error::CONTINUE
       ks.errcode <- Error::CONTINUE
   else
     let pid = cap_pid(parent) in
@@ -161,7 +150,6 @@ defn revoke_time(ks: kstate, parent: u64)  : kstate =
 
     let pcap = Cap::time_set_mrk(pcap, Cap::time_get_bgn(pcap)) in
     let ks = Ctable::set_cap(ks, parent, pcap) in
-    ks.errcode <- Error::SUCCESS
     ks.errcode <- Error::SUCCESS
 
 defn derive_time(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t) : kstate =
@@ -180,9 +168,8 @@ defn derive_time(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t) : kstate =
     let ks = Ctable::set_cap(ks, src, cap) in
     let ks = Ctable::insert(ks, dst, ncap, src) in
     ks.errcode <- Error::SUCCESS
-    ks.errcode <- Error::SUCCESS
   else
-    ks.errcode <- Error::ERR_INVALID_DERIVATION
+    ks.errcode <- Error::INVALID_DERIVATION
 
 (* Monitor capability *)
 
@@ -201,14 +188,11 @@ defn revoke_monitor(ks: kstate, parent: u64) : kstate =
     let ks = Ctable::set_cap(ks, parent, pcap) in
     if (Cap::monitor_get_mrk(pcap) == Cap::monitor_get_bgn(pcap)) then
       ks.errcode <- Error::SUCCESS
-      ks.errcode <- Error::SUCCESS
     else
-      ks.errcode <- Error::CONTINUE
       ks.errcode <- Error::CONTINUE
   else
     let pcap = Cap::monitor_set_mrk(pcap, Cap::monitor_get_bgn(pcap)) in
     let ks = Ctable::set_cap(ks, parent, pcap) in
-    ks.errcode <- Error::SUCCESS
     ks.errcode <- Error::SUCCESS
 
 defn cap_derive_monitor(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t)  : kstate =
@@ -221,28 +205,26 @@ defn cap_derive_monitor(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t)  : kst
     let ks = Ctable::set_cap(ks, src, cap) in
     let ks = Ctable::insert(ks, dst, ncap, src) in
     ks.errcode <- Error::SUCCESS
-    ks.errcode <- Error::SUCCESS
   else
-    ks.errcode <- Error::ERR_INVALID_DERIVATION
+    ks.errcode <- Error::INVALID_DERIVATION
       
 (* Capability operation dispatchers *)
 
 defn read(ks: kstate, cidx: u64) : kstate =
   let cap = ks.ctable[cidx] in
   if Cap::get_type(cap) == Cap::CAPTY_NONE then
-    ks.errcode <- Error::ERR_EMPTY
+    ks.errcode <- Error::EMPTY
   else
     let ks = Kernel::vreg_write(ks, 0UL, cap) in
     ks.errcode <- Error::SUCCESS
 
 defn move(ks: kstate, src: u64, dst: u64) : kstate =
   if Ctable::is_empty_cap(ks, src) then
-    ks.errcode <- Error::ERR_SRC_EMPTY
+    ks.errcode <- Error::SRC_EMPTY
   else if !(Ctable::is_empty_cap(ks, dst)) then
-    ks.errcode <- Error::ERR_DST_OCCUPIED
+    ks.errcode <- Error::DST_OCCUPIED
   else
     let ks = Ctable::move(ks, src, dst) in
-    ks.errcode <- Error::SUCCESS
     ks.errcode <- Error::SUCCESS
 
 defn delete(ks: kstate, cidx: u64) : kstate =
@@ -257,13 +239,13 @@ defn delete(ks: kstate, cidx: u64) : kstate =
     else if cap_type == Cap::CAPTY_TIME then
       delete_time(ks, cidx)
     else
-      ks.errcode <- Error::ERR_INVALID_CAPABILITY
+      ks.errcode <- Error::INVALID_CAPABILITY
 
 defn derive(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t) : kstate =
   if Ctable::is_empty_cap(ks, src) then
-    ks.errcode <- Error::ERR_SRC_EMPTY
+    ks.errcode <- Error::SRC_EMPTY
   else if !(Ctable::is_empty_cap(ks, dst)) then
-    ks.errcode <- Error::ERR_DST_OCCUPIED
+    ks.errcode <- Error::DST_OCCUPIED
   else
     let cap_type = Cap::get_type(ks.ctable[src]) in
     if cap_type == Cap::CAPTY_MEMORY then
@@ -273,4 +255,4 @@ defn derive(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t) : kstate =
     else if cap_type == Cap::CAPTY_TIME then
       derive_time(ks, src, dst, ncap)
     else
-      ks.errcode <- Error::ERR_INVALID_CAPABILITY
+      ks.errcode <- Error::INVALID_CAPABILITY

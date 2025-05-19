@@ -85,17 +85,13 @@ class Capability:
             output.append(f"defn {name}_get_{field}(cap: cap_t) : bool =")
             if offset:
                 output.append(f"  ((cap >> {offset}UL) & 0x1UL) as bool")
-                output.append(f"  ((cap >> {offset}UL) & 0x1UL) as bool")
             else:
-                output.append(f"  (cap & 0x1UL) as bool")
                 output.append(f"  (cap & 0x1UL) as bool")
         else:
             output.append(f"defn {name}_get_{field}(cap: cap_t) : u64 =")
             if offset:
                 output.append(f"  (cap >> {offset}UL) & {hex(mask)}UL")
-                output.append(f"  (cap >> {offset}UL) & {hex(mask)}UL")
             else:
-                output.append(f"  (cap & {hex(mask)}UL)")
                 output.append(f"  (cap & {hex(mask)}UL)")
         return "\n".join(output)
 
@@ -109,18 +105,14 @@ class Capability:
             output.append(f"defn {name}_set_{field}(cap: cap_t, v: bool) : u64 =")
             if offset:
                 output.append(f"  (cap & ~{hex(mask)}UL) | ((v as u64) << {offset}UL)")
-                output.append(f"  (cap & ~{hex(mask)}UL) | ((v as u64) << {offset}UL)")
             else:
-                output.append(f"  (cap & ~{hex(mask)}UL) | (v as u64)")
                 output.append(f"  (cap & ~{hex(mask)}UL) | (v as u64)")
         else:
             output.append(f"defn {name}_set_{field}(cap: cap_t, v: u64) : u64 =")
             if offset:
                 mask = mask << offset
                 output.append(f"  (cap & ~{hex(mask)}UL) | (v << {offset}UL)")
-                output.append(f"  (cap & ~{hex(mask)}UL) | (v << {offset}UL)")
             else:
-                output.append(f"  (cap & ~{hex(mask)}UL) | v")
                 output.append(f"  (cap & ~{hex(mask)}UL) | v")
         return "\n".join(output)
 
