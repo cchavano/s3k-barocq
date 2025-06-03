@@ -1,11 +1,11 @@
 module Ctable
 
-type kstate = Kernel::state
+import Types
 
 defn is_empty_cap(ks: kstate, cidx: u64) : bool =
   Cap::get_type(ks.ctable[cidx]) == Cap::CAPTY_NONE
 
-defn set_cap(ks: kstate, cidx: u64, cap: Cap::cap_t) : kstate =
+defn set_cap(ks: kstate, cidx: u64, cap: cap_t) : kstate =
   let ctable = ks.ctable in
   let ctable = ctable[cidx] <- cap in
   ks.ctable <- ctable
@@ -35,7 +35,7 @@ defn delete(ks: kstate, cidx: u64) : kstate =
   let ks = set_next(ks, ks.cprev[cidx], ks.cnext[cidx]) in
   set_prev(ks, ks.cnext[cidx], ks.cprev[cidx])
 
-defn insert(ks: kstate, cidx: u64, cap: Cap::cap_t, previdx: u64) : kstate =
+defn insert(ks: kstate, cidx: u64, cap: cap_t, previdx: u64) : kstate =
   let ks = set_prev(ks, cidx, previdx) in
   let ks = set_next(ks, cidx, ks.cnext[previdx]) in
   let ks = set_next(ks, previdx, cidx) in

@@ -1,8 +1,8 @@
 module Ptable
 
-type kstate = Kernel::state
+import Types
 
-defn proc_reg_write(ks: kstate, pid: Types::pid_t, reg: u64, val: Types::word_t) : kstate =
+defn proc_reg_write(ks: kstate, pid: pid_t, reg: u64, val: word_t) : kstate =
   let ptable = ks.ptable in
   let proc = ptable[pid] in
   let proc =
@@ -26,53 +26,53 @@ defn proc_reg_write(ks: kstate, pid: Types::pid_t, reg: u64, val: Types::word_t)
   let ptable = ptable[pid] <- proc in
   ks.ptable <- ptable
 
-defn acquire(ks: kstate, pid: Types::pid_t) : kstate =
+defn acquire(ks: kstate, pid: pid_t) : kstate =
   let expected = ks.ptable[pid].state in
   let desired = Proc::PSF_BUSY in
   if (expected & (Proc::PSF_BUSY | Proc::PSF_SUSPENDED)) as bool then
-    Kernel::vreg_write(ks, 0UL, false as u64)
+    Vreg::write(ks, 0UL, false as u64)
   else if Machine::time_read(ks.mc) < ks.ptable[pid].timeout then
-    Kernel::vreg_write(ks, 0UL, false as u64)
+    Vreg::write(ks, 0UL, false as u64)
   else
     let ptable = ks.ptable in
     let proc = ptable[pid] in
     let proc = proc.state <- desired in
     let ptable = ptable[pid] <- proc in
     let ks = ks.ptable <- ptable in
-    Kernel::vreg_write(ks, 0UL, true as u64)
+    Vreg::write(ks, 0UL, true as u64)
 
-defn suspend(ks: kstate, pid: Types::pid_t) : kstate =
+defn suspend(ks: kstate, pid: pid_t) : kstate =
   let proc = Proc::suspend(ks.ptable[pid]) in
   let ptable = ks.ptable[pid] <- proc in
   ks.ptable <- ptable
 
-defn resume(ks: kstate, pid: Types::pid_t) : kstate =
+defn resume(ks: kstate, pid: pid_t) : kstate =
   let proc = Proc::resume(ks.ptable[pid]) in
   let ptable = ks.ptable[pid] <- proc in
   ks.ptable <- ptable
 
-defn release(ks: kstate, pid: Types::pid_t) : kstate =
+defn release(ks: kstate, pid: pid_t) : kstate =
   let proc = Proc::release(ks.ptable[pid]) in
   let ptable = ks.ptable[pid] <- proc in
   ks.ptable <- ptable
 
-defn is_suspended(ks: kstate, pid: Types::pid_t) : bool =
+defn is_suspended(ks: kstate, pid: pid_t) : bool =
   Proc::is_suspended(ks.ptable[pid])
 
-defn pmp_avail(ks: kstate, pid: Types::pid_t, slot: Types::pmp_slot_t) : bool =
+defn pmp_avail(ks: kstate, pid: pid_t, slot: pmp_slot_t) : bool =
   Proc::pmp_avail(ks.ptable[pid], slot)
 
-defn pmp_load(ks: kstate, pid: Types::pid_t, slot: Types::pmp_slot_t, rwx: Types::pmp_slot_t, addr: Types::napot_t) : kstate =
+defn pmp_load(ks: kstate, pid: pid_t, slot: pmp_slot_t, rwx: pmp_slot_t, addr: napot_t) : kstate =
   let proc = Proc::pmp_load(ks.ptable[pid], slot, rwx, addr) in
   let ptable = ks.ptable[pid] <- proc in
   ks.ptable <- ptable
 
-defn pmp_unload(ks: kstate, pid: Types::pid_t, slot: Types::pmp_slot_t) : kstate =
+defn pmp_unload(ks: kstate, pid: pid_t, slot: pmp_slot_t) : kstate =
   let proc = Proc::pmp_unload(ks.ptable[pid], slot) in
   let ptable = ks.ptable[pid] <- proc in
   ks.ptable <- ptable
 
-defn proc_reg_read(ks: kstate, pid: Types::pid_t, reg: u64) : Types::word_t =
+defn proc_reg_read(ks: kstate, pid: pid_t, reg: u64) : word_t =
   let proc = ks.ptable[pid] in
   if reg == Proc::REG_PC then
     proc.pc

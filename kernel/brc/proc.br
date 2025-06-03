@@ -1,27 +1,6 @@
 module Proc
 
-type proc_state_t = u64
-
-type proc_t = {
-  state: proc_state_t;
-  (* Registers ===== *)
-  pc: Types::word_t; ra: Types::word_t; sp: Types::word_t; gp: Types::word_t; tp: Types::word_t;
-  t0: Types::word_t; t1: Types::word_t; t2: Types::word_t; s0: Types::word_t; s1: Types::word_t;
-  a0: Types::word_t; a1: Types::word_t; a2: Types::word_t; a3: Types::word_t; a4: Types::word_t;
-  a5: Types::word_t; a6: Types::word_t; a7: Types::word_t;
-  s2: Types::word_t; s3: Types::word_t; s4: Types::word_t; s5: Types::word_t; s6: Types::word_t;
-  s7: Types::word_t; s8: Types::word_t; s9: Types::word_t;
-  s10: Types::word_t; s11: Types::word_t; t3: Types::word_t; t4: Types::word_t; t5: Types::word_t; t6: Types::word_t;
-  tpc: Types::word_t; tsp: Types::word_t; epc: Types::word_t; esp: Types::word_t;
-  ecause: Types::word_t; eval: Types::word_t;
-  servtime: Types::word_t;
-  (* =============== *)
-  pmpcfg: array u64;
-  pmpaddr: array u64;
-  pid: Types::pid_t;
-  timeout: u64;
-  serv_time: u64;
-}
+import Types
 
 defn PSF_BUSY : u64 = 1UL
 defn PSF_BLOCKED : u64 = 2UL
@@ -59,10 +38,10 @@ defn release(proc: proc_t) : proc_t =
 defn is_suspended(proc: proc_t) : bool =
   proc.state == PSF_SUSPENDED
 
-defn pmp_avail(proc: proc_t, slot: Types::pmp_slot_t) : bool =
+defn pmp_avail(proc: proc_t, slot: pmp_slot_t) : bool =
   proc.pmpcfg[slot] == 0UL
 
-defn pmp_load(proc: proc_t, slot: Types::pmp_slot_t, rwx: Types::pmp_slot_t, addr: Types::napot_t) : proc_t =
+defn pmp_load(proc: proc_t, slot: pmp_slot_t, rwx: pmp_slot_t, addr: napot_t) : proc_t =
   let pcfg = proc.pmpcfg in
   let paddr = proc.pmpaddr in
   let pcfg = pcfg[slot] <- (rwx | 0x18UL) in
@@ -70,7 +49,7 @@ defn pmp_load(proc: proc_t, slot: Types::pmp_slot_t, rwx: Types::pmp_slot_t, add
   let proc = proc.pmpcfg <- pcfg in
   proc.pmpaddr <- paddr
 
-defn pmp_unload(proc: proc_t, slot: Types::pmp_slot_t) : proc_t =
+defn pmp_unload(proc: proc_t, slot: pmp_slot_t) : proc_t =
   let pcfg = proc.pmpcfg in
   let pcfg = pcfg[slot] <- 0UL in
   proc.pmpcfg <- pcfg

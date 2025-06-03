@@ -13,7 +13,7 @@
 #include "libkernel.h"
 #include "types.h"
 
-typedef struct Proc_proc_t proc_t;
+typedef struct Types_proc_t proc_t;
 typedef word_t proc_state_t;
 
 typedef enum {

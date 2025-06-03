@@ -1,8 +1,8 @@
 module Monitor
 
-type kstate = Kernel::state
+import Types
 
-defn check(ks: kstate, midx: u64, pid: Types::pid_t, check_suspended: bool) : Error::err_t =
+defn check(ks: kstate, midx: u64, pid: pid_t, check_suspended: bool) : Error::err_t =
   let mon = ks.ctable[midx] in
   let mon_type = Cap::get_type(mon) in
   if (mon_type != Cap::CAPTY_MONITOR)
@@ -29,7 +29,7 @@ defn check_move(ks: kstate, midx: u64, src: u64, dst: u64) : Error::err_t =
   else
     err
 
-defn cap_suspend(ks: kstate, midx: Cap::cap_t, pid: Types::pid_t) : kstate =
+defn cap_suspend(ks: kstate, midx: cap_t, pid: pid_t) : kstate =
   let err = check(ks, midx, pid, false) in
   if (err == Error::SUCCESS) then
     let ks = Ptable::suspend(ks, pid) in
@@ -37,7 +37,7 @@ defn cap_suspend(ks: kstate, midx: Cap::cap_t, pid: Types::pid_t) : kstate =
   else
     ks.errcode <- err
 
-defn cap_resume(ks: kstate, midx: u64, pid: Types::pid_t) : kstate =
+defn cap_resume(ks: kstate, midx: u64, pid: pid_t) : kstate =
   let err = check(ks, midx, pid, false) in
   if err == Error::SUCCESS then
     let ks = Ptable::resume(ks, pid) in
@@ -46,36 +46,36 @@ defn cap_resume(ks: kstate, midx: u64, pid: Types::pid_t) : kstate =
   else
     ks.errcode <- err
   
-defn cap_state_get(ks: kstate, midx: u64, pid: Types::pid_t) : kstate =
+defn cap_state_get(ks: kstate, midx: u64, pid: pid_t) : kstate =
   let err = check(ks, midx, pid, false) in
   if err == Error::SUCCESS then
-    let ks = Kernel::vreg_write(ks, 0UL, ks.ptable[pid].state) in
+    let ks = Vreg::write(ks, 0UL, ks.ptable[pid].state) in
     ks.errcode <- Error::SUCCESS
   else
     ks.errcode <- err
 
-defn cap_yield(ks: kstate, midx: u64, pid: Types::pid_t) : kstate =
+defn cap_yield(ks: kstate, midx: u64, pid: pid_t) : kstate =
   let err = check(ks, midx, pid, false) in
   if err == Error::SUCCESS then
     let ks = Ptable::acquire(ks, pid) in
-    if (Kernel::vreg_read(ks, 0UL) as bool) then
-      let ks = Kernel::vreg_write(ks, 0UL, pid) in
+    if (Vreg::read(ks, 0UL) as bool) then
+      let ks = Vreg::write(ks, 0UL, pid) in
       ks.errcode <- Error::SUCCESS
     else
       ks.errcode <- Error::INVALID_STATE
   else
     ks.errcode <- err
 
-defn cap_reg_read(ks: kstate, midx: u64, pid: Types::pid_t, reg: u64) : kstate =
+defn cap_reg_read(ks: kstate, midx: u64, pid: pid_t, reg: u64) : kstate =
   let err = check(ks, midx, pid, true) in
   if err == Error::SUCCESS then
     let val = Ptable::proc_reg_read(ks, pid, reg) in
-    let ks = Kernel::vreg_write(ks, 0UL, val) in
+    let ks = Vreg::write(ks, 0UL, val) in
     ks.errcode <- Error::SUCCESS
   else
     ks.errcode <- err
 
-defn cap_reg_write(ks: kstate, midx: u64, pid: Types::pid_t, reg: u64, val: Types::word_t) : kstate =
+defn cap_reg_write(ks: kstate, midx: u64, pid: pid_t, reg: u64, val: word_t) : kstate =
   let err = check(ks, midx, pid, true) in
   if err == Error::SUCCESS then
     let ks = Ptable::proc_reg_write(ks, pid, reg, val) in
@@ -100,7 +100,7 @@ defn cap_move(ks: kstate, midx: u64, src: u64, dst: u64) : kstate =
   else
     ks.errcode <- err
 
-defn cap_pmp_load(ks: kstate, midx: u64, cidx: u64, slot: Types::pmp_slot_t) : kstate =
+defn cap_pmp_load(ks: kstate, midx: u64, cidx: u64, slot: pmp_slot_t) : kstate =
   let pid = Cap_ops::cap_pid(cidx) in
   let err = check(ks, midx, pid, true) in
   if err == Error::SUCCESS then

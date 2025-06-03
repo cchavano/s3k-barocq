@@ -5,7 +5,7 @@
 #include "pmp.h"
 #include "proc.h"
 
-struct Kernel_state ks;
+struct Types_kstate ks;
 
 // Capabilities
 static u64 _cnext[S3K_PROC_CNT * S3K_CAP_CNT];

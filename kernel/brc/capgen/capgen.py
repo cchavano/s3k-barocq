@@ -121,7 +121,7 @@ class Capability:
 def main(capabilities):
     output = ["(* Capability types *)"]
     for i, cap in enumerate(capabilities):
-        output.append(f"defn CAPTY_{cap['name'].upper()} : u64= {i}UL")
+        output.append(f"defn CAPTY_{cap['name'].upper()} : u64 = {i}UL")
     output.append("\n(* Number of capability types (incl. null cap) *)")
     output.append(f"defn CAPTY_COUNT : u64 = {len(capabilities)}UL")
     output.append("\n(* Capability type *)")
@@ -145,7 +145,7 @@ def main(capabilities):
 
 prelude = '''module Cap
 
-type cap_t = u64
+import Types
 '''
 
 is_valid_cap ='''

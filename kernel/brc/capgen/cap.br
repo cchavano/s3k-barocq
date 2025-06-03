@@ -1,15 +1,15 @@
 module Cap
 
-type cap_t = u64
+import Types
 
 (* Capability types *)
-defn CAPTY_NONE : u64= 0UL
-defn CAPTY_TIME : u64= 1UL
-defn CAPTY_MEMORY : u64= 2UL
-defn CAPTY_PMP : u64= 3UL
-defn CAPTY_MONITOR : u64= 4UL
-defn CAPTY_CHANNEL : u64= 5UL
-defn CAPTY_SOCKET : u64= 6UL
+defn CAPTY_NONE : u64 = 0UL
+defn CAPTY_TIME : u64 = 1UL
+defn CAPTY_MEMORY : u64 = 2UL
+defn CAPTY_PMP : u64 = 3UL
+defn CAPTY_MONITOR : u64 = 4UL
+defn CAPTY_CHANNEL : u64 = 5UL
+defn CAPTY_SOCKET : u64 = 6UL
 
 (* Number of capability types (incl. null cap) *)
 defn CAPTY_COUNT : u64 = 7UL

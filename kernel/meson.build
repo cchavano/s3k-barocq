@@ -55,12 +55,13 @@ link_args = [
 barocq = find_program('barocq', required : true)
 
 kernel_br = files(
-	'brc/machine.br',
+	'brc/config.br',
 	'brc/error.br',
+	'brc/machine.br',
 	'brc/types.br',
 	'brc/capgen/cap.br',
+	'brc/vreg.br',
 	'brc/proc.br',
-	'brc/kernel.br',
 	'brc/sched.br',
 	'brc/ctable.br',
 	'brc/ptable.br',

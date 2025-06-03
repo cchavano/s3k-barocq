@@ -11,7 +11,7 @@
 
 extern char __uart[];
 
-extern struct Kernel_state ks;
+extern struct Types_kstate ks;
 
 // static unsigned long long _vreg[8];
 

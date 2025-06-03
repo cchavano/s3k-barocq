@@ -17,7 +17,7 @@
 
 #include <stdbool.h>
 
-extern struct Kernel_state ks;
+extern struct Types_kstate ks;
 
 static bool _valid_idx(cidx_t idx)
 {
@@ -515,7 +515,7 @@ proc_t *_br_mon_yield(proc_t *const p, const sys_args_t *args)
 {
 	Syscall_mon_yield(&ks, p->pid, args->mon_state.mon_idx,
 			  args->mon_state.pid);
-	proc_t *next = ks.ptable[Kernel_vreg_read(&ks, 0)];
+	proc_t *next = ks.ptable[Vreg_read(&ks, 0)];
 	return next;
 }
 

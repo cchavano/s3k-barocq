@@ -22,7 +22,7 @@ struct sched_decision {
 	uint64_t end_time;
 };
 
-extern struct Kernel_state ks;
+extern struct Types_kstate ks;
 
 static uint64_t slots[S3K_SLOT_CNT];
 
@@ -38,7 +38,7 @@ void sched_init(void)
 	sched_update(pid, end, from, to);
 }
 
-struct Kernel_state *Sched_update(struct Kernel_state *ks, u64 pid, u64 end,
+struct Types_kstate *Sched_update(struct Types_kstate *ks, u64 pid, u64 end,
 				  u64 from, u64 to)
 {
 	u64 mask = 0xFFFFull;
@@ -49,7 +49,7 @@ struct Kernel_state *Sched_update(struct Kernel_state *ks, u64 pid, u64 end,
 	return ks;
 }
 
-struct Kernel_state *Sched_delete(struct Kernel_state *ks, u64 from, u64 to)
+struct Types_kstate *Sched_delete(struct Types_kstate *ks, u64 from, u64 to)
 {
 	u64 mask = 0xFFFFull;
 	for (u64 i = from; i < to; ++i)

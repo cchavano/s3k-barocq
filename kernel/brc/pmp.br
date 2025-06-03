@@ -1,8 +1,8 @@
 module Pmp
 
-type kstate = Kernel::state
+import Types
 
-defn load(ks: kstate, cidx: u64, slot: Types::pmp_slot_t) : kstate =
+defn load(ks: kstate, cidx: u64, slot: pmp_slot_t) : kstate =
   let pid = Cap_ops::cap_pid(cidx) in
   let cap = ks.ctable[cidx] in
   let cap_type = Cap::get_type(cap) in

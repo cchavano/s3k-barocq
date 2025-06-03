@@ -7,7 +7,7 @@
 #include "libkernel.h"
 #include "rtc.h"
 
-extern struct Kernel_state ks;
+extern struct Types_kstate ks;
 
 static uint64_t _pmpcfg[S3K_PROC_CNT][S3K_PMP_CNT];
 static uint64_t _pmpaddr[S3K_PROC_CNT][S3K_PMP_CNT];

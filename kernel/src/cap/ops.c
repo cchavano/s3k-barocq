@@ -9,7 +9,7 @@
 typedef err_t (*ipc_move_handler)(cte_t, const cap_t *, cte_t);
 typedef err_t (*delete_handler)(cte_t, const cap_t *);
 typedef err_t (*revoke_handler)(cte_t, cap_t *);
-typedef struct Kernel_state *(*br_revoke_handler)(struct Kernel_state *, u64);
+typedef struct Types_kstate *(*br_revoke_handler)(struct Types_kstate *, u64);
 typedef err_t (*derive_handler)(cte_t, cap_t *, cte_t, const cap_t *);
 
 static err_t cap_delete_time(cte_t src, const cap_t *cap);
@@ -119,7 +119,7 @@ err_t cap_delete(cte_t c)
 	return delete_handlers[cap.type](c, &cap);
 }
 
-struct Kernel_state *Cap_ops_revoke(struct Kernel_state *ks, u64 parent)
+struct Types_kstate *Cap_ops_revoke(struct Types_kstate *ks, u64 parent)
 {
 	u64 pcap = ks->ctable[parent];
 	if (Cap_get_type(pcap) == CAPTY_NONE)
