@@ -474,6 +474,7 @@ proc_t *_br_cap_derive(proc_t *const p, const sys_args_t *args)
 
 proc_t *_br_cap_revoke(proc_t *const p, const sys_args_t *args)
 {
+	Syscall_cap_revoke(&ks, p->pid, args->cap_revoke.idx);
 	return p->t0 == ERR_PREEMPTED ? (proc_t *)NULL : p;
 }
 
