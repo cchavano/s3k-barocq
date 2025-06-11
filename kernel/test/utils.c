@@ -1,6 +1,15 @@
 #include "csr.h"
 #include "rtc.h"
+#include "libkernel.h"
+#include <stdio.h>
+#include "pmp.h"
+#include "proc.h"
+#include "cap/util.h"
+#include "sched.h"
+#include "machine.h"
 
+static uint64_t __mtime[1];
+static uint64_t __mtimecmp[8];
 static word_t pmpaddr[8];
 static word_t pmpcfg[2];
 
@@ -66,4 +75,34 @@ void csrw_pmpcfg0(word_t cfg)
 void csrw_pmpcfg1(word_t cfg)
 {
 	pmpcfg[1] = cfg;
+}
+
+void kputc(char c)
+{
+	putchar(c);
+}
+
+uint64_t rtc_time_get(void)
+{
+	return __mtime[0];
+}
+
+u64 Machine_time_read(struct Machine_state *mc)
+{
+	return rtc_time_get();
+}
+
+void rtc_time_set(uint64_t time)
+{
+	__mtime[0] = time;
+}
+
+uint64_t rtc_timeout_get(uint64_t hart)
+{
+	return __mtimecmp[hart];
+}
+
+void rtc_timeout_set(uint64_t hart, uint64_t time)
+{
+	__mtimecmp[hart] = time;
 }

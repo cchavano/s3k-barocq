@@ -24,20 +24,6 @@ struct sched_decision {
 
 extern struct Types_kstate ks;
 
-static uint64_t slots[S3K_SLOT_CNT];
-
-void sched_init(void)
-{
-	uint64_t pid = 0;
-	uint64_t end = S3K_SLOT_CNT;
-	uint64_t from = 0;
-	uint64_t to = S3K_SLOT_CNT;
-
-	ks.tslots = (u64 *)slots;
-
-	sched_update(pid, end, from, to);
-}
-
 struct Types_kstate *Sched_update(struct Types_kstate *ks, u64 pid, u64 end,
 				  u64 from, u64 to)
 {
@@ -69,7 +55,7 @@ void sched_delete(uint64_t from, uint64_t to)
 
 static void slot_info_get(uint64_t slot, slot_info_t *si)
 {
-	uint64_t entry = slots[slot % S3K_SLOT_CNT];
+	uint64_t entry = ks.tslots[slot % S3K_SLOT_CNT];
 	si->pid = (entry >> 8) & 0xFF;
 	si->length = entry & 0xFF;
 }

@@ -104,6 +104,7 @@ class Capability:
         if self.size(field) == 1:
             output.append(f"defn {name}_set_{field}(cap: cap_t, v: bool) : u64 =")
             if offset:
+                mask = mask << offset
                 output.append(f"  (cap & ~{hex(mask)}UL) | ((v as u64) << {offset}UL)")
             else:
                 output.append(f"  (cap & ~{hex(mask)}UL) | (v as u64)")
@@ -155,9 +156,9 @@ defn is_valid(cap: cap_t) : bool =
     (time_get_bgn(cap) < time_get_end(cap))
     && (time_get_bgn(cap) == time_get_mrk(cap))
   else if cap_type == CAPTY_MEMORY then
-    memory_get_lck(cap)
+    !memory_get_lck(cap)
     && (memory_get_bgn(cap) < memory_get_end(cap))
-    && (memory_get_mrk(cap) == memory_get_mrk(cap))
+    && (memory_get_bgn(cap) == memory_get_mrk(cap))
   else if cap_type == CAPTY_PMP then
     !pmp_get_used(cap) && (pmp_get_slot(cap) == 0UL)
   else if cap_type == CAPTY_MONITOR then

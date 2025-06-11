@@ -9,24 +9,14 @@
 
 extern struct Types_kstate ks;
 
-static uint64_t _pmpcfg[S3K_PROC_CNT][S3K_PMP_CNT];
-static uint64_t _pmpaddr[S3K_PROC_CNT][S3K_PMP_CNT];
-static proc_t _procs[S3K_PROC_CNT];
-static proc_t *_ptable[S3K_PROC_CNT];
-
 void proc_init(word_t payload)
 {
 	for (uint64_t i = 0; i < S3K_PROC_CNT; i++) {
-		_procs[i].pid = i;
-		_procs[i].state = PSF_SUSPENDED;
-		_procs[i].pmpcfg = (u64 *)_pmpcfg[i];
-		_procs[i].pmpaddr = (u64 *)_pmpaddr[i];
-		_ptable[i] = &_procs[i];
+		ks.ptable[i]->pid = i;
+		ks.ptable[i]->state = PSF_SUSPENDED;
 	}
-	_procs[0].state = 0;
-	_procs[0].pc = (word_t)payload;
-
-	ks.ptable = _ptable;
+	ks.ptable[0]->state = 0;
+	ks.ptable[0]->pc = (word_t)payload;
 }
 
 proc_t *proc_get(pid_t pid)

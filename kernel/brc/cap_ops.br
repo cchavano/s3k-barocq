@@ -65,7 +65,6 @@ defn derive_memory(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
   let cap = ks.ctable[src] in
   if (Cap::get_type(ncap) == Cap::CAPTY_MEMORY)
       && (Cap::memory_get_tag(cap) == Cap::memory_get_tag(ncap))
-      && (Cap::memory_get_tag(cap) == Cap::memory_get_tag(ncap))
       && (Cap::memory_get_mrk(cap) <= Cap::memory_get_bgn(ncap))
       && (Cap::memory_get_end(ncap) <= Cap::memory_get_end(cap))
       && ((Cap::memory_get_rwx(ncap) & Cap::memory_get_rwx(cap)) == Cap::memory_get_rwx(ncap))

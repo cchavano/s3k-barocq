@@ -1,5 +1,8 @@
 #include "rtc.h"
 
+#include "libkernel.h"
+#include "machine.h"
+
 extern volatile uint64_t __mtime[];
 extern volatile uint64_t __mtimecmp[];
 

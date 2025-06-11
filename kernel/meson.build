@@ -35,7 +35,7 @@ sources = files(
 	'src/trap.c',
 	'src/rtc.c',
 	'src/csr.c',
-	'src/kinit.c',
+	'src/kstate.c',
 	platdir / 'plat.c',
 )
 
@@ -113,8 +113,9 @@ unity_dep = declare_dependency(
 
 gen_test_runner = unity_proj.get_variable('gen_test_runner')
 
+
 test_runner = gen_test_runner.process(
-	'test/test.c',
+	'test/main.c',
 )
 
 test_sources = files(
@@ -131,18 +132,13 @@ test_sources = files(
 		'src/proc.c',
 		'src/sched.c',
 		'src/syscall.c',
-		'src/trap.c',
-		'src/kinit.c'
-) + kernel_c
+		'src/kstate.c',
+		'test/main.c',
+		'test/utils.c',
+) + test_runner + kernel_c
 
 s3k_test = executable('s3k_test',
-	sources : test_sources + files(
-		'test/test.c',
-		'test/rtc.c',
-		'test/csr.c',
-		'test/trap.c',
-		'test/kputc.c',
-	) + test_runner,
+	sources : test_sources,
 	include_directories : include_directories,
 	c_args : [
 		'-include', platdir / 'config.h',
