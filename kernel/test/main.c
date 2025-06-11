@@ -29,6 +29,27 @@ void tearDown(void)
 {
 }
 
+bool check_schedule(pid_t pid, time_slot_t bgn, time_slot_t end)
+{
+	for (time_slot_t i = bgn; i < end; i++) {
+		u64 expected = (pid << 8) | (end - i);
+		if (ks.tslots[i] != expected) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool check_schedule_deleted(time_slot_t bgn, time_slot_t end)
+{
+	for (time_slot_t i = bgn; i < end; i++) {
+		if (ks.tslots[i] != 0) {
+			return false;
+		}
+	}
+	return true;
+}
+
 void test_mk_memory(void)
 {
 	cap_t cap = {.raw = 0x123456789abcdef0ull };
@@ -67,22 +88,17 @@ void test_mk_monitor(void)
 void test_Setup(void)
 {
 	uint64_t ram_pmp = pmp_napot_encode(0x80010000, 0x10000);
-	cap_t init_caps[] = {
-	    cap_mk_pmp(ram_pmp, MEM_RWX),
-	    cap_mk_memory(0x80020000, 0x80100000, MEM_RWX),
-	    cap_mk_memory(0x10000000, 0x10010000, MEM_RW),
-	    cap_mk_time(0, S3K_SLOT_CNT),
-	    cap_mk_monitor(0, S3K_PROC_CNT),
+	u64 init_caps[] = {
+	    cap_mk_pmp(ram_pmp, MEM_RWX).raw,
+	    cap_mk_memory(0x80020000, 0x80100000, MEM_RWX).raw,
+	    cap_mk_memory(0x10000000, 0x10010000, MEM_RW).raw,
+	    cap_mk_time(0, S3K_SLOT_CNT).raw,
+	    cap_mk_monitor(0, S3K_PROC_CNT).raw,
 	};
+	init_caps[0] = Cap_pmp_set_slot(init_caps[0], 0); // Set slot to 0
+	init_caps[0] = Cap_pmp_set_used(init_caps[0], true); // Set slot to 0
 
-	init_caps[0].pmp.slot = 0; // Set slot to 0
-	init_caps[0].pmp.used = 1; // Set used to 1
-
-	TEST_ASSERT_EQUAL_UINT64(init_caps[0].raw, ks.ctable[0]);
-	TEST_ASSERT_EQUAL_UINT64(init_caps[1].raw, ks.ctable[1]);
-	TEST_ASSERT_EQUAL_UINT64(init_caps[2].raw, ks.ctable[2]);
-	TEST_ASSERT_EQUAL_UINT64(init_caps[3].raw, ks.ctable[3]);
-	TEST_ASSERT_EQUAL_UINT64(init_caps[4].raw, ks.ctable[4]);
+	TEST_ASSERT_EQUAL_UINT64_ARRAY(init_caps, ks.ctable, ARRAY_SIZE(init_caps));
 
 	// Check PC initialized to 0x80010000
 	TEST_ASSERT_EQUAL_UINT64(ks.ptable[0]->pc, 0x80010000);
@@ -107,10 +123,7 @@ void test_Setup(void)
 		}
 	}
 
-	// Check scheduler initialized
-	for (uint64_t i = 0; i < S3K_SLOT_CNT; i++) {
-		TEST_ASSERT_EQUAL_UINT64(ks.tslots[i], S3K_SLOT_CNT - i);
-	}
+	TEST_ASSERT_TRUE(check_schedule(0, 0, S3K_SLOT_CNT));
 }
 
 void test_Syscall_cap_read(void)
@@ -326,4 +339,75 @@ void test_Syscall_cap_derive_memory_invalid_perm2(void)
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
 	Syscall_cap_derive(&ks, pid, dst1, dst2, cap2.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_delete_pmp(void)
+{
+	int pid = 0; // Process ID
+	int src = 0; // Source capability index
+	TEST_ASSERT_EQUAL_UINT64(Cap_pmp_get_addr(ks.ctable[src]), ks.ptable[pid]->pmpaddr[0]);
+	Syscall_cap_delete(&ks, pid, src);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[src]);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[pid]->pmpcfg[0]);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[pid]->pmpaddr[0]);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_derive_time_valid1(void)
+{
+	int pid = 0; // Process ID
+	int src = 3; // Source capability index
+	int dst = 8; // Destination capability index
+	cap_t cap = cap_mk_time(0, 16);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(cap.raw, ks.ctable[dst]);
+	TEST_ASSERT_TRUE(check_schedule(pid, 0, 16));
+	TEST_ASSERT_TRUE(check_schedule(pid, 16, 32));
+}
+
+/**
+ * Delete the root capability
+ */
+void test_Syscall_cap_delete_time1(void)
+{
+	int pid = 0; // Process ID
+	int src = 3; // Source capability index
+	Syscall_cap_delete(&ks, pid, src);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[src]);
+	TEST_ASSERT_TRUE(check_schedule_deleted(0, S3K_SLOT_CNT));
+}
+
+/**
+ * Derive then delete the root capability
+ */
+void test_Syscall_cap_derive_delete_time1(void)
+{
+	int pid = 0; // Process ID
+	int src = 3; // Source capability index
+	int dst = 8; // Destination capability index
+	cap_t cap = cap_mk_time(0, 16);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	Syscall_cap_delete(&ks, pid, src);
+	TEST_ASSERT_TRUE(check_schedule(pid, 0, 16));
+	TEST_ASSERT_TRUE(check_schedule_deleted(16, 32));
+}
+
+/**
+ * Derive then delete the derived capability
+ */
+void test_Syscall_cap_derive_delete_time2(void)
+{
+	int pid = 0; // Process ID
+	int src = 3; // Source capability index
+	int dst = 8; // Destination capability index
+	cap_t cap = cap_mk_time(0, 16);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	Syscall_cap_delete(&ks, pid, dst);
+	TEST_ASSERT_TRUE(check_schedule_deleted(0, 16));
+	TEST_ASSERT_TRUE(check_schedule(pid, 16, 32));
 }
