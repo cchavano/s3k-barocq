@@ -23,6 +23,8 @@ void setUp(void)
 	ks.ptable[0]->pc = 0x80010000;
 	ks.ptable[0]->state = 0; // Set state to ready
 	Syscall_pmp_load(&ks, 0, 0, 0);
+	rtc_time_set(0);
+	rtc_timeout_set(0, 0);
 }
 
 void tearDown(void)
@@ -410,4 +412,20 @@ void test_Syscall_cap_derive_delete_time2(void)
 	Syscall_cap_delete(&ks, pid, dst);
 	TEST_ASSERT_TRUE(check_schedule_deleted(0, 16));
 	TEST_ASSERT_TRUE(check_schedule(pid, 16, 32));
+}
+
+void test_Syscall_cap_revoke_time1(void)
+{
+	rtc_time_set(0);
+	rtc_timeout_set(0, 1000); // Reset timeout
+	int pid = 0; // Process ID
+	int src = 3; // Source capability index
+	int dst = 8; // Destination capability index
+	cap_t cap = cap_mk_time(0, 16);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	Syscall_cap_revoke(&ks, pid, dst);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_TRUE(check_schedule(pid, 0, 16));
+	TEST_ASSERT_TRUE(check_schedule(pid, 16, S3K_SLOT_CNT));
 }

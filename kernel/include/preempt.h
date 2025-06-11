@@ -5,5 +5,5 @@
 
 static inline bool preempt(void)
 {
-	return csrr_mip() & 0x80;
+	return (csrr_mip() & csrr_mie()) != 0;
 }

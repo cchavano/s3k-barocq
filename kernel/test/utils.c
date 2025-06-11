@@ -84,7 +84,7 @@ void kputc(char c)
 
 uint64_t rtc_time_get(void)
 {
-	return __mtime[0];
+	return __mtime[0]++;
 }
 
 u64 Machine_time_read(struct Machine_state *mc)
