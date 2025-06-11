@@ -122,18 +122,18 @@ err_t cap_delete(cte_t c)
 struct Types_kstate *Cap_ops_revoke(struct Types_kstate *ks, u64 parent)
 {
 	u64 pcap = ks->ctable[parent];
-	if (Cap_get_type(pcap) == CAPTY_NONE)
+	u64 type = Cap_get_type(pcap);
+	if (type == CAPTY_NONE)
 		ks->errcode = ERR_EMPTY;
 	do {
-		pcap = ks->ctable[parent];
-		br_revoke_handlers[Cap_get_type(pcap)](ks, parent);
+		br_revoke_handlers[type](ks, parent);
 	} while (ks->errcode == Error_CONTINUE && !preempt());
 
-	if (ks->errcode == Error_SUCCESS) {
+	if (ks->errcode == Error_CONTINUE) {
 		ks->errcode = Error_PREEMPTED;
-	} else {
-		ks->errcode = Error_SUCCESS;
 	}
+	// Why is this necessary?
+	ks->errcode = ks->errcode;
 }
 
 err_t cap_revoke(cte_t parent)

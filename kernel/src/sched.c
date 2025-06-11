@@ -27,10 +27,8 @@ extern struct Types_kstate ks;
 struct Types_kstate *Sched_update(struct Types_kstate *ks, u64 pid, u64 end,
 				  u64 from, u64 to)
 {
-	u64 mask = 0xFFFFull;
 	for (u64 i = from; i < to; i++) {
-		ks->tslots[i] &= ~mask;
-		ks->tslots[i] |= ((pid << 8) | (end - i));
+		ks->tslots[i] = ((pid << 8) | (end - i));
 	}
 	return ks;
 }

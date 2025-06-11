@@ -61,10 +61,12 @@ void kstate_init(const cap_t init_caps[], size_t size)
 		ks.tslots[i] = 0;
 	}
 
+	unsigned int prev = 0;
 	for (unsigned int i = 0; i < size; i++) {
 		if (init_caps[i].type == CAPTY_NONE)
 			continue;
-		Ctable_insert(&ks, i, init_caps[i].raw, i);
+		Ctable_insert(&ks, i, init_caps[i].raw, prev);
+		prev = i;
 		if (init_caps[i].type == Cap_CAPTY_TIME) {
 			Sched_update(&ks, 0, init_caps[i].time.end,
 					init_caps[i].time.mrk,
