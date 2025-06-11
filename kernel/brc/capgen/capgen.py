@@ -99,19 +99,17 @@ class Capability:
         name = self.name()
         word = self.word(field)
         offset = self.offset(field)
-        mask = (1 << self.size(field)) - 1
+        mask = ((1 << self.size(field)) - 1) << offset
         output = []
         if self.size(field) == 1:
             output.append(f"defn {name}_set_{field}(cap: cap_t, v: bool) : u64 =")
             if offset:
-                mask = mask << offset
                 output.append(f"  (cap & ~{hex(mask)}UL) | ((v as u64) << {offset}UL)")
             else:
                 output.append(f"  (cap & ~{hex(mask)}UL) | (v as u64)")
         else:
             output.append(f"defn {name}_set_{field}(cap: cap_t, v: u64) : u64 =")
             if offset:
-                mask = mask << offset
                 output.append(f"  (cap & ~{hex(mask)}UL) | (v << {offset}UL)")
             else:
                 output.append(f"  (cap & ~{hex(mask)}UL) | v")
