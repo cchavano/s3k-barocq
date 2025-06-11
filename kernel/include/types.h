@@ -231,6 +231,7 @@ typedef enum {
 	MEM_X = 0x4,
 	MEM_RW = MEM_R | MEM_W,
 	MEM_RX = MEM_R | MEM_X,
+	MEM_WX = MEM_W | MEM_X,
 	MEM_RWX = MEM_R | MEM_W | MEM_X,
 } mem_perm_t;
 
