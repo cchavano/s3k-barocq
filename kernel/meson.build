@@ -44,6 +44,8 @@ c_args = [
     '-ffreestanding',
     '-Wno-unused-parameter',
     '-Wno-parentheses',
+    '-nostdlib',
+    '-fno-builtin',
     '-include',
     platdir / 'config.h',
     '-include',
@@ -52,10 +54,9 @@ c_args = [
 
 link_args = [
     '-nostartfiles',
-    '-nodefaultlibs',
     '-nostdlib',
-    '-T',
-    platdir / 'linker.ld',
+    '-fno-builtin',
+    '-T' + platdir / 'linker.ld',
 ]
 
 

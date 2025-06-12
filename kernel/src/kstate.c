@@ -33,7 +33,6 @@ static struct Types_channel *_pchannels[S3K_CHAN_CNT];
 void kstate_init(const cap_t init_caps[], size_t size)
 {
 	// Setup the kernel state
-	ks = (struct Types_kstate){0};
 	ks.cnext = _cnext;
 	ks.cprev = _cprev;
 	ks.ctable = _ctable;
@@ -57,7 +56,6 @@ void kstate_init(const cap_t init_caps[], size_t size)
 
 	// Zero and intialize the process table
 	for (unsigned int i = 0; i < ARRAY_SIZE(_ptable); i++) {
-		_procs[i] = (struct Types_proc_t){0};
 		_ptable[i] = &_procs[i];
 		for (unsigned int j = 0; j < S3K_PMP_CNT; j++) {
 			_pmpcfg[i][j] = 0;
