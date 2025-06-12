@@ -198,9 +198,22 @@ defn derive_monitor(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
   let cap = ks.ctable[src] in
   if (Cap::get_type(ncap) == Cap::CAPTY_MONITOR)
       && (Cap::monitor_get_mrk(cap) <= Cap::monitor_get_bgn(ncap))
-      && (Cap::monitor_get_mrk(cap) <= Cap::monitor_get_end(cap))
+      && (Cap::monitor_get_end(ncap) <= Cap::monitor_get_end(cap))
   then
-    let cap = Cap::monitor_set_mrk(cap, Cap::monitor_get_end(cap)) in
+    let cap = Cap::monitor_set_mrk(cap, Cap::monitor_get_end(ncap)) in
+    let ks = Ctable::set_cap(ks, src, cap) in
+    let ks = Ctable::insert(ks, dst, ncap, src) in
+    ks.errcode <- Error::SUCCESS
+  else
+    ks.errcode <- Error::INVALID_DERIVATION
+
+defn derive_channel(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
+  let cap = ks.ctable[src] in
+  if (Cap::get_type(ncap) == Cap::CAPTY_CHANNEL)
+      && (Cap::channel_get_mrk(cap) <= Cap::channel_get_bgn(ncap))
+      && (Cap::channel_get_end(ncap) <= Cap::channel_get_end(cap))
+  then
+    let cap = Cap::channel_set_mrk(cap, Cap::channel_get_end(ncap)) in
     let ks = Ctable::set_cap(ks, src, cap) in
     let ks = Ctable::insert(ks, dst, ncap, src) in
     ks.errcode <- Error::SUCCESS
@@ -280,6 +293,8 @@ defn derive(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
       derive_time(ks, src, dst, ncap)
     else if cap_type == Cap::CAPTY_MONITOR then
       derive_monitor(ks, src, dst, ncap)
+    else if cap_type == Cap::CAPTY_CHANNEL then
+      derive_channel(ks, src, dst, ncap)
     else
       ks.errcode <- Error::INVALID_CAPABILITY
 

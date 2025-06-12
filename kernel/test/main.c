@@ -123,6 +123,21 @@ void test_cap_monitor_serialization(void)
 }
 
 /*
+ * Test that barocq channel capability and C channel capability are serialized identically.
+ */
+void test_cap_channel_serialization(void)
+{
+	cap_t cap = {.raw = 0x123456789abcdef0ull};
+	cap.type = CAPTY_CHANNEL;
+	cap.chan._padding = 0; // Ensure padding is zero
+	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
+	TEST_ASSERT_EQUAL_UINT64(cap.chan.bgn, Cap_channel_get_bgn(cap.raw));
+	TEST_ASSERT_EQUAL_UINT64(cap.chan.end, Cap_channel_get_end(cap.raw));
+	TEST_ASSERT_EQUAL_UINT64(cap.chan.mrk, Cap_channel_get_mrk(cap.raw));
+}
+
+
+/*
  * Test that the kernel is setup correctly.
  */
 void test_Setup(void)
@@ -791,6 +806,38 @@ void test_Syscall_cap_revoke_time7(void)
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst3]);
 }
+/*
+ * Check that monitors can be derived correctly.
+ */
+void test_Syscall_cap_derive_monitor_valid1(void)
+{
+	int pid = 0; // Process ID
+	int src = 4; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int dst2 = 9; // Destination capability index
+	int dst3 = 10; // Destination capability index
+	cap_t cap1 = cap_mk_monitor(0, 8);
+	cap_t cap2 = cap_mk_monitor(0, 4);
+	cap_t cap3 = cap_mk_monitor(4, 8);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_MONITOR, Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(8, Cap_monitor_get_mrk(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, dst1, dst2, cap2.raw);
+	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ctable[dst2]);
+	TEST_ASSERT_EQUAL_UINT64(4, Cap_monitor_get_mrk(ks.ctable[dst1]));
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	Syscall_cap_derive(&ks, pid, dst1, dst3, cap3.raw);
+	TEST_ASSERT_EQUAL_UINT64(cap3.raw, ks.ctable[dst3]);
+	TEST_ASSERT_EQUAL_UINT64(8, Cap_monitor_get_mrk(ks.ctable[dst1]));
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+
+	cap1.chan.mrk = 8;
+	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ctable[dst2]);
+	TEST_ASSERT_EQUAL_UINT64(cap3.raw, ks.ctable[dst3]);
+}
 
 /*
  * Check that IPC channels can be derived correctly.
@@ -805,11 +852,18 @@ void test_Syscall_cap_derive_channel_valid1(void)
 	cap_t cap1 = cap_mk_channel(0, 8);
 	cap_t cap2 = cap_mk_channel(0, 4);
 	cap_t cap3 = cap_mk_channel(4, 8);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL, Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
-	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
+	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(8, Cap_channel_get_mrk(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, dst1, dst2, cap2.raw);
+	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ctable[dst2]);
+	TEST_ASSERT_EQUAL_UINT64(4, Cap_channel_get_mrk(ks.ctable[dst1]));
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
-	Syscall_cap_derive(&ks, pid, src, dst3, cap3.raw);
+	Syscall_cap_derive(&ks, pid, dst1, dst3, cap3.raw);
+	TEST_ASSERT_EQUAL_UINT64(cap3.raw, ks.ctable[dst3]);
+	TEST_ASSERT_EQUAL_UINT64(8, Cap_channel_get_mrk(ks.ctable[dst1]));
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
 
 	cap1.chan.mrk = 8;
