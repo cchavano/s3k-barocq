@@ -791,3 +791,29 @@ void test_Syscall_cap_revoke_time7(void)
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst3]);
 }
+
+/*
+ * Check that IPC channels can be derived correctly.
+ */
+void test_Syscall_cap_derive_channel_valid1(void)
+{
+	int pid = 0; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int dst2 = 9; // Destination capability index
+	int dst3 = 10; // Destination capability index
+	cap_t cap1 = cap_mk_channel(0, 8);
+	cap_t cap2 = cap_mk_channel(0, 4);
+	cap_t cap3 = cap_mk_channel(4, 8);
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	Syscall_cap_derive(&ks, pid, src, dst3, cap3.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+
+	cap1.chan.mrk = 8;
+	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ctable[dst2]);
+	TEST_ASSERT_EQUAL_UINT64(cap3.raw, ks.ctable[dst3]);
+}
