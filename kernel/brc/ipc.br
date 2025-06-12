@@ -199,7 +199,8 @@ defn cap_sock_send(ks: kstate, sock_idx: u64, next_pid: pid_t) : kstate =
   let cap_type = Cap::get_type(cap) in
   if cap_type == Cap::CAPTY_NONE then
     ks.errcode <- Error::EMPTY
-  else if cap_type == Cap::CAPTY_SOCKET then
+  else if 
+  cap_type != Cap::CAPTY_SOCKET then
     ks.errcode <- Error::INVALID_SOCKET
   else if (ks.ptable[next_pid].state & Proc::PSF_SUSPENDED) as bool then
     let ks = Vreg::write(ks, Vreg::V0, Proc::NULL) in

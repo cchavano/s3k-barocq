@@ -20,6 +20,7 @@ defn proc_reg_write(ks: kstate, pid: pid_t, reg: u64, val: word_t) : kstate =
     else if reg == Proc::REG_A1 then proc.a1 <- val
     else if reg == Proc::REG_A2 then proc.a2 <- val
     else if reg == Proc::REG_A3 then proc.a3 <- val
+    else if reg == Proc::REG_A4 then proc.a4 <- val
     else if reg == Proc::REG_A5 then proc.a5 <- val
     else if reg == Proc::REG_A6 then proc.a6 <- val
     else if reg == Proc::REG_A7 then proc.a7 <- val

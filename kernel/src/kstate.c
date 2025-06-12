@@ -4,13 +4,15 @@
 #include "libkernel.h"
 #include "pmp.h"
 #include "proc.h"
+#include "macro.h"
 
 struct Types_kstate ks;
 
 // Capabilities
-static u64 _cnext[S3K_PROC_CNT * S3K_CAP_CNT];
-static u64 _cprev[S3K_PROC_CNT * S3K_CAP_CNT];
-static u64 _ctable[S3K_PROC_CNT * S3K_CAP_CNT];
+#define TOTAL_CAP_CNT (S3K_PROC_CNT * S3K_CAP_CNT)
+static u64 _cnext[TOTAL_CAP_CNT];
+static u64 _cprev[TOTAL_CAP_CNT];
+static u64 _ctable[TOTAL_CAP_CNT];
 
 // Virtual registers
 static u64 _vregs[8];
@@ -22,7 +24,11 @@ static struct Types_proc_t _procs[S3K_PROC_CNT];
 static struct Types_proc_t *_ptable[S3K_PROC_CNT];
 
 // Time slots
-static u64 _slots[S3K_SLOT_CNT];
+static u64 _tslots[S3K_SLOT_CNT];
+
+// Channels
+static struct Types_channel _channels[S3K_CHAN_CNT];
+static struct Types_channel *_pchannels[S3K_CHAN_CNT];
 
 void kstate_init(const cap_t init_caps[], size_t size)
 {
@@ -33,10 +39,11 @@ void kstate_init(const cap_t init_caps[], size_t size)
 	ks.ctable = _ctable;
 	ks.vregs = _vregs;
 	ks.ptable = _ptable;
-	ks.tslots = _slots;
+	ks.tslots = _tslots;
+	ks.channels = _pchannels;
 
 	// Zero the capability table
-	for (unsigned int i = 0; i < S3K_PROC_CNT * S3K_CAP_CNT; i++) {
+	for (unsigned int i = 0; i < ARRAY_SIZE(_ctable); i++) {
 		ks.cnext[i] = 0;
 		ks.cprev[i] = 0;
 		ks.ctable[i] = 0;
@@ -49,7 +56,7 @@ void kstate_init(const cap_t init_caps[], size_t size)
 	ks.errcode = 0;
 
 	// Zero and intialize the process table
-	for (unsigned int i = 0; i < S3K_PROC_CNT; i++) {
+	for (unsigned int i = 0; i < ARRAY_SIZE(_ptable); i++) {
 		_procs[i] = (struct Types_proc_t){0};
 		_ptable[i] = &_procs[i];
 		for (unsigned int j = 0; j < S3K_PMP_CNT; j++) {
@@ -63,14 +70,21 @@ void kstate_init(const cap_t init_caps[], size_t size)
 	}
 
 	// Zero the time slots
-	for (unsigned int i = 0; i < S3K_SLOT_CNT; i++) {
+	for (unsigned int i = 0; i < ARRAY_SIZE(_tslots); i++) {
 		ks.tslots[i] = 0;
+	}
+
+	for (unsigned int i = 0; i < ARRAY_SIZE(_channels); i++) {
+		ks.channels[i] = &_channels[i];
+		ks.channels[i]->server = 0;
+		ks.channels[i]->client = 0;
+		ks.channels[i]->buf_idx = 0;
 	}
 
 	// Populate the capability table with initial capabilities
 	unsigned int prev = 0;
 	for (unsigned int i = 0; i < size; i++) {
-		if (init_caps[i].type == CAPTY_NONE)
+		if (init_caps[i].type == Cap_CAPTY_NONE)
 			continue;
 		Ctable_insert(&ks, i, init_caps[i].raw, prev);
 		prev = i;

@@ -239,7 +239,7 @@ defn sock_send(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64, send_cap: bo
     let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else
-    let sock_idx = Cap_ops::cap_idx_from_pid(pid, cap_idx) in
+    let sock_idx = Cap_ops::cap_idx_from_pid(pid, sock_idx) in
     let buf_idx = Cap_ops::cap_idx_from_pid(pid, cap_idx) in
     let ks = Ipc::msg_buf_idx_set(ks, buf_idx) in
     let ks = Ipc::msg_send_cap_set(ks, send_cap) in
