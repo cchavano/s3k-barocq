@@ -632,3 +632,155 @@ void test_Syscall_cap_revoke_time1(void)
 	TEST_ASSERT_TRUE(check_schedule(pid, 0, 16));
 	TEST_ASSERT_TRUE(check_schedule(pid, 16, S3K_SLOT_CNT));
 }
+
+/*
+ * Check that time revocation a child.
+ */
+void test_Syscall_cap_revoke_time2(void)
+{
+	rtc_time_set(0);
+	rtc_timeout_set(0, 1000); // Reset timeout
+	int pid = 0; // Process ID
+	int src = 3; // Source capability index
+	int dst = 8; // Destination capability index
+	cap_t cap = cap_mk_time(0, 16);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	Syscall_cap_revoke(&ks, pid, src);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
+	TEST_ASSERT_TRUE(check_schedule(pid, 0, S3K_SLOT_CNT));
+}
+
+/*
+ * Check that time revocation deletes all children siblings.
+ */
+void test_Syscall_cap_revoke_time3(void)
+{
+	rtc_time_set(0);
+	rtc_timeout_set(0, 1000); // Reset timeout
+	int pid = 0; // Process ID
+	int src = 3; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int dst2 = 9; // Destination capability index
+	cap_t cap1 = cap_mk_time(0, 16);
+	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
+	TEST_ASSERT_TRUE(check_schedule(pid, 0, 16));
+	TEST_ASSERT_TRUE(check_schedule(pid, 16, S3K_SLOT_CNT));
+	Syscall_cap_revoke(&ks, pid, src);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
+	TEST_ASSERT_TRUE(check_schedule(pid, 0, S3K_SLOT_CNT));
+}
+
+/*
+ * Check that revocation does not delete siblings.
+ */
+void test_Syscall_cap_revoke_time4(void)
+{
+	rtc_time_set(0);
+	rtc_timeout_set(0, 1000); // Reset timeout
+	int pid = 0; // Process ID
+	int src = 3; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int dst2 = 9; // Destination capability index
+	cap_t cap1 = cap_mk_time(0, 16);
+	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
+
+	// Revoke on dst1, should be a no-op
+	Syscall_cap_revoke(&ks, pid, dst1);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ctable[dst2]);
+	TEST_ASSERT_TRUE(check_schedule(pid, 0, 16));
+	TEST_ASSERT_TRUE(check_schedule(pid, 16, S3K_SLOT_CNT));
+
+	// Revoke on dst2, should be a no-op
+	Syscall_cap_revoke(&ks, pid, dst2);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ctable[dst2]);
+	TEST_ASSERT_TRUE(check_schedule(pid, 0, 16));
+	TEST_ASSERT_TRUE(check_schedule(pid, 16, S3K_SLOT_CNT));
+}
+
+/*
+ * Check that revocation is preempted.
+ */
+void test_Syscall_cap_revoke_time5(void)
+{
+	rtc_time_set(1);
+	rtc_timeout_set(0, 0); // Reset timeout
+	int pid = 0; // Process ID
+	int src = 3; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int dst2 = 9; // Destination capability index
+	cap_t cap1 = cap_mk_time(0, 16);
+	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
+	Syscall_cap_revoke(&ks, pid, src);
+	TEST_ASSERT_EQUAL_UINT64(Error_PREEMPTED, ks.ptable[pid]->t0);
+}
+
+/*
+ * Check that revoke deletes at least one child.
+ */
+void test_Syscall_cap_revoke_time6(void)
+{
+	// Check that revoke deletes at least one child
+	rtc_time_set(1);
+	rtc_timeout_set(0, 0); // Reset timeout
+	int pid = 0; // Process ID
+	int src = 3; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int dst2 = 9; // Destination capability index
+	cap_t cap1 = cap_mk_time(0, 16);
+	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
+	Syscall_cap_revoke(&ks, pid, src);
+	TEST_ASSERT_EQUAL_UINT64(Error_PREEMPTED, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
+}
+
+/*
+ * Check that revoke deletes children vertically.
+ */
+void test_Syscall_cap_revoke_time7(void)
+{
+	// Check that revoke deletes at least one child
+	rtc_time_set(0);
+	rtc_timeout_set(0, 100); // Reset timeout
+	int pid = 0; // Process ID
+	int src = 3; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int dst2 = 9; // Destination capability index
+	int dst3 = 10; // Destination capability index
+	cap_t cap1 = cap_mk_time(0, 16);
+	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
+	Syscall_cap_derive(&ks, pid, dst2, dst3, cap2.raw);
+	Syscall_cap_revoke(&ks, pid, src);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst3]);
+}
