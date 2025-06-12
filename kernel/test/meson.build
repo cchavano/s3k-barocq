@@ -42,7 +42,13 @@ s3k_test = executable(
     's3k_test',
     sources: test_sources,
     include_directories: include_directories,
-    c_args: ['-include', 'config.h', '-DNDEBUG'],
+    c_args: [
+        '-include',
+        'config.h',
+        '-DNDEBUG',
+        '-Wno-unused-parameter',
+        '-Wno-parentheses',
+    ],
     native: true,
     dependencies: [unity_dep],
 )

@@ -8,6 +8,7 @@ project(
         'warning_level=2',
         'c_std=c99',
         'b_ndebug=if-release',
+        'werror=true',
     ],
 )
 
@@ -41,6 +42,8 @@ sources = files(
 
 c_args = [
     '-ffreestanding',
+    '-Wno-unused-parameter',
+    '-Wno-parentheses',
     '-include',
     platdir / 'config.h',
     '-include',
