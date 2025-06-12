@@ -89,11 +89,9 @@ defn do_send(ks: kstate, sock_idx: u64, next_pid: pid_t) : kstate =
     if mode == IPC_YIELD then
       let ks = Ptable::proc_timeout_set(ks, recv_pid, ks.ptable[next_pid].timeout) in
       Vreg::write(ks, Vreg::V0, recv_pid)
-    else if mode == IPC_NOYIELD then
+    else 
       let ks = Ptable::proc_timeout_set(ks, recv_pid, 0UL) in
       Ptable::release(ks, recv_pid)
-    else
-      ks
   else
     ks.errcode <- Error::NO_RECEIVER
 
