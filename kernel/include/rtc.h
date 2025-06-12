@@ -1,7 +1,8 @@
 #pragma once
 
-#include <stdint.h>
 #include "libkernel.h"
+
+#include <stdint.h>
 
 uint64_t rtc_time_get(void);
 void rtc_time_set(uint64_t time);

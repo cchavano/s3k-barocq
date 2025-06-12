@@ -571,7 +571,7 @@ proc_t *_br_mon_pmp_unload(proc_t *const p, const sys_args_t *args)
 proc_t *_br_sock_send(proc_t *const p, const sys_args_t *args)
 {
 	Syscall_sock_send(&ks, p->pid, args->sock.sock_idx, args->sock.cap_idx,
-			  args->sock.send_cap, (u64*)args->sock.data);
+			  args->sock.send_cap, (u64 *)args->sock.data);
 	u64 next_pid = Vreg_read(&ks, 0);
 	proc_t *next = next_pid == Proc_NULL ? NULL : ks.ptable[next_pid];
 	return next;
@@ -589,7 +589,7 @@ proc_t *_br_sock_sendrecv(proc_t *const p, const sys_args_t *args)
 {
 	Syscall_sock_sendrecv(&ks, p->pid, args->sock.sock_idx,
 			      args->sock.cap_idx, args->sock.send_cap,
-			      (u64*)args->sock.data);
+			      (u64 *)args->sock.data);
 	u64 next_pid = Vreg_read(&ks, 0);
 	proc_t *next = next_pid == Proc_NULL ? NULL : ks.ptable[next_pid];
 	return next;

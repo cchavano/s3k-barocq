@@ -7,8 +7,9 @@
 #pragma once
 
 #ifndef __ASSEMBLER__
-#include <types.h>
 #include "libkernel.h"
+
+#include <types.h>
 #endif
 
 /* Machine CSR constants */

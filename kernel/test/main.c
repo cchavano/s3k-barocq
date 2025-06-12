@@ -136,7 +136,6 @@ void test_cap_channel_serialization(void)
 	TEST_ASSERT_EQUAL_UINT64(cap.chan.mrk, Cap_channel_get_mrk(cap.raw));
 }
 
-
 /*
  * Test that the kernel is setup correctly.
  */
@@ -154,7 +153,8 @@ void test_Setup(void)
 	init_caps[0] = Cap_pmp_set_slot(init_caps[0], 0);    // Set slot to 0
 	init_caps[0] = Cap_pmp_set_used(init_caps[0], true); // Set slot to 0
 
-	TEST_ASSERT_EQUAL_UINT64_ARRAY(init_caps, ks.ctable, ARRAY_SIZE(init_caps));
+	TEST_ASSERT_EQUAL_UINT64_ARRAY(init_caps, ks.ctable,
+				       ARRAY_SIZE(init_caps));
 
 	// Check PC initialized to 0x80010000
 	TEST_ASSERT_EQUAL_UINT64(ks.ptable[0]->pc, 0x80010000);
@@ -806,20 +806,22 @@ void test_Syscall_cap_revoke_time7(void)
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst3]);
 }
+
 /*
  * Check that monitors can be derived correctly.
  */
 void test_Syscall_cap_derive_monitor_valid1(void)
 {
-	int pid = 0; // Process ID
-	int src = 4; // Source capability index
-	int dst1 = 8; // Destination capability index
-	int dst2 = 9; // Destination capability index
+	int pid = 0;   // Process ID
+	int src = 4;   // Source capability index
+	int dst1 = 8;  // Destination capability index
+	int dst2 = 9;  // Destination capability index
 	int dst3 = 10; // Destination capability index
 	cap_t cap1 = cap_mk_monitor(0, 8);
 	cap_t cap2 = cap_mk_monitor(0, 4);
 	cap_t cap3 = cap_mk_monitor(4, 8);
-	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_MONITOR, Cap_get_type(ks.ctable[src]));
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_MONITOR,
+				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
 	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
@@ -844,15 +846,16 @@ void test_Syscall_cap_derive_monitor_valid1(void)
  */
 void test_Syscall_cap_derive_channel_valid1(void)
 {
-	int pid = 0; // Process ID
-	int src = 5; // Source capability index
-	int dst1 = 8; // Destination capability index
-	int dst2 = 9; // Destination capability index
+	int pid = 0;   // Process ID
+	int src = 5;   // Source capability index
+	int dst1 = 8;  // Destination capability index
+	int dst2 = 9;  // Destination capability index
 	int dst3 = 10; // Destination capability index
 	cap_t cap1 = cap_mk_channel(0, 8);
 	cap_t cap2 = cap_mk_channel(0, 4);
 	cap_t cap3 = cap_mk_channel(4, 8);
-	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL, Cap_get_type(ks.ctable[src]));
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
+				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
 	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
