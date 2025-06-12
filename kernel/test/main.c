@@ -1250,9 +1250,96 @@ void test_Syscall_sock_send_success1(void)
 	Syscall_sock_send(&ks, client, dst2, 0, 0, msg);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[client]->t0);
 
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[server]->state);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
 	TEST_ASSERT_EQUAL_UINT64(tag, ks.ptable[server]->a0);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[server]->a1);
+	TEST_ASSERT_EQUAL_UINT64(msg[0], ks.ptable[server]->a2);
+	TEST_ASSERT_EQUAL_UINT64(msg[1], ks.ptable[server]->a3);
+	TEST_ASSERT_EQUAL_UINT64(msg[2], ks.ptable[server]->a4);
+	TEST_ASSERT_EQUAL_UINT64(msg[3], ks.ptable[server]->a5);
+}
+
+void test_Syscall_sock_send_success2(void)
+{
+	rtc_timeout_set(0, 1000); // Reset timeout
+	int server = 0; // Process ID
+	int client = 1; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int dst2 = 9; // Destination capability index
+	u64 chan = 4;
+	int mode = Ipc_IPC_YIELD;
+	int perm = Ipc_IPC_SCAP;
+	int tag = 0xbeef;
+	cap_t cap1 = cap_mk_socket(chan, mode, perm, 0);
+	cap_t cap2 = cap_mk_socket(chan, mode, perm, tag);
+	Syscall_cap_derive(&ks, server, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, server, dst1, dst2, cap2.raw);
+	Syscall_mon_cap_move(&ks, server, 4, server, dst2, client, dst2);
+	Syscall_cap_read(&ks, client, dst2);
+	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ptable[client]->a0);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
+	Syscall_mon_resume(&ks, server, 4, client);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[client]->state);
+
+	Syscall_sock_recv(&ks, server, dst1, 0);
+	Ptable_release(&ks, server);
+	TEST_ASSERT_EQUAL_UINT64(Error_TIMEOUT, ks.ptable[server]->t0);
+	TEST_ASSERT_EQUAL_UINT64(PSF_BLOCKED | chan << 48, ks.ptable[server]->state);
+
+	u64 msg[4] = {0x2, 0x4, 0x8, 0x10};
+	Syscall_sock_send(&ks, client, dst2, 0, 0, msg);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[client]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[client]->state);
+
+	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_BUSY, ks.ptable[server]->state);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
+	TEST_ASSERT_EQUAL_UINT64(tag, ks.ptable[server]->a0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[server]->a1);
+	TEST_ASSERT_EQUAL_UINT64(msg[0], ks.ptable[server]->a2);
+	TEST_ASSERT_EQUAL_UINT64(msg[1], ks.ptable[server]->a3);
+	TEST_ASSERT_EQUAL_UINT64(msg[2], ks.ptable[server]->a4);
+	TEST_ASSERT_EQUAL_UINT64(msg[3], ks.ptable[server]->a5);
+}
+
+void test_Syscall_sock_send_success3(void)
+{
+	rtc_timeout_set(0, 1000); // Reset timeout
+	int server = 0; // Process ID
+	int client = 1; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int dst2 = 9; // Destination capability index
+	u64 chan = 4;
+	int mode = Ipc_IPC_YIELD;
+	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int tag = 0xbeef;
+	cap_t cap1 = cap_mk_socket(chan, mode, perm, 0);
+	cap_t cap2 = cap_mk_socket(chan, mode, perm, tag);
+	Syscall_cap_derive(&ks, server, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, server, dst1, dst2, cap2.raw);
+	Syscall_mon_cap_move(&ks, server, 4, server, dst2, client, dst2);
+	Syscall_cap_read(&ks, client, dst2);
+	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ptable[client]->a0);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
+	Syscall_mon_resume(&ks, server, 4, client);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[client]->state);
+
+	Syscall_sock_recv(&ks, server, dst1, 10);
+	Ptable_release(&ks, server);
+	TEST_ASSERT_EQUAL_UINT64(Error_TIMEOUT, ks.ptable[server]->t0);
+	TEST_ASSERT_EQUAL_UINT64(PSF_BLOCKED | chan << 48, ks.ptable[server]->state);
+
+	u64 msg[4] = {0x2, 0x4, 0x8, 0x10};
+	Syscall_sock_send(&ks, client, dst2, dst2, true, msg);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[client]->t0);
+
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
+	TEST_ASSERT_EQUAL_UINT64(tag, ks.ptable[server]->a0);
+	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ptable[server]->a1);
 	TEST_ASSERT_EQUAL_UINT64(msg[0], ks.ptable[server]->a2);
 	TEST_ASSERT_EQUAL_UINT64(msg[1], ks.ptable[server]->a3);
 	TEST_ASSERT_EQUAL_UINT64(msg[2], ks.ptable[server]->a4);

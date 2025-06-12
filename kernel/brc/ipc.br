@@ -80,25 +80,22 @@ defn do_send(ks: kstate, sock_idx: u64, next_pid: pid_t) : kstate =
     let ks =
       if msg_send_cap_get(ks) then
         let buf_idx = ks.channels[chan_idx].buf_idx in
-        let ks = Ctable::move(ks, msg_buf_idx_get(ks), buf_idx) in
+        let ks = Cap_ops::move(ks, msg_buf_idx_get(ks), buf_idx) in
         Ptable::proc_reg_write(ks, recv_pid, Proc::REG_A1, ks.ctable[buf_idx])
       else
         Ptable::proc_reg_write(ks, recv_pid, Proc::REG_A1, 0UL)
     in
-    let ks =
-      let mode = Cap::socket_get_mode(sock) in
-      if mode == IPC_YIELD then
-        let ks = Ptable::proc_timeout_set(ks, recv_pid, ks.ptable[next_pid].timeout) in
-        Vreg::write(ks, Vreg::V0, recv_pid)
-      else if mode == IPC_NOYIELD then
-        let ks = Ptable::proc_timeout_set(ks, recv_pid, 0UL) in
-        Ptable::release(ks, recv_pid)
-      else
-        ks
-    in
-    ks.errcode <- Error::SUCCESS
+    let mode = Cap::socket_get_mode(sock) in
+    if mode == IPC_YIELD then
+      let ks = Ptable::proc_timeout_set(ks, recv_pid, ks.ptable[next_pid].timeout) in
+      Vreg::write(ks, Vreg::V0, recv_pid)
+    else if mode == IPC_NOYIELD then
+      let ks = Ptable::proc_timeout_set(ks, recv_pid, 0UL) in
+      Ptable::release(ks, recv_pid)
+    else
+      ks
   else
-    ks
+    ks.errcode <- Error::NO_RECEIVER
 
 defn do_recv(ks: kstate, sock_idx: u64, buf_idx: u64, recv_pid: pid_t) : kstate =
   let sock = ks.ctable[sock_idx] in
