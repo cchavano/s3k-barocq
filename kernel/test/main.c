@@ -841,6 +841,49 @@ void test_Syscall_cap_derive_monitor_valid1(void)
 	TEST_ASSERT_EQUAL_UINT64(cap3.raw, ks.ctable[dst3]);
 }
 
+void test_Syscall_cap_mon_resume_suspend_valid1(void)
+{
+	int pid = 0; // Process ID
+	int src = 4; // Source capability index
+	int other_pid = 1;
+	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_SUSPENDED,
+				 ks.ptable[other_pid]->state);
+	Syscall_mon_resume(&ks, pid, src, other_pid);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[other_pid]->state);
+	Syscall_mon_suspend(&ks, pid, src, other_pid);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_SUSPENDED,
+				 ks.ptable[other_pid]->state);
+}
+
+void test_Syscall_cap_mon_reg_valid1(void)
+{
+	int pid = 0; // Process ID
+	int src = 4; // Source capability index
+	int other_pid = 1;
+	Syscall_mon_reg_write(&ks, pid, src, other_pid, 2, 0xdeadbeef);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0xdeadbeef, ks.ptable[other_pid]->sp);
+	Syscall_mon_reg_read(&ks, pid, src, other_pid, 2);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0xdeadbeef, ks.ptable[pid]->a0);
+
+	Syscall_mon_reg_write(&ks, pid, src, other_pid, 10, 0xdeadbeef);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0xdeadbeef, ks.ptable[other_pid]->a0);
+	Syscall_mon_reg_read(&ks, pid, src, other_pid, 10);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0xdeadbeef, ks.ptable[pid]->a0);
+
+	Syscall_mon_reg_write(&ks, pid, src, other_pid, 32, 0xdeadbeef);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0xdeadbeef, ks.ptable[other_pid]->tpc);
+	Syscall_mon_reg_read(&ks, pid, src, other_pid, 32);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0xdeadbeef, ks.ptable[pid]->a0);
+}
+
 /*
  * Check that IPC channels can be derived correctly.
  */
