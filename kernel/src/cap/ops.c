@@ -57,9 +57,15 @@ static const revoke_handler revoke_handlers[CAPTY_COUNT] = {
     cap_revoke_channel,
     cap_revoke_socket,
 };
-static const br_revoke_handler br_revoke_handlers[CAPTY_COUNT]
-    = {NULL, Cap_ops_revoke_time, Cap_ops_revoke_memory, Cap_ops_revoke_pmp,
-       Cap_ops_revoke_monitor, Cap_ops_revoke_channel,};
+static const br_revoke_handler br_revoke_handlers[CAPTY_COUNT] = {
+    NULL,
+    Cap_ops_revoke_time,
+    Cap_ops_revoke_memory,
+    Cap_ops_revoke_pmp,
+    Cap_ops_revoke_monitor,
+    Cap_ops_revoke_channel,
+    Cap_ops_revoke_socket,
+};
 static const derive_handler derive_handlers[CAPTY_COUNT] = {
     NULL,
     cap_derive_time,

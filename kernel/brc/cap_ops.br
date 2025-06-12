@@ -257,6 +257,27 @@ defn revoke_channel(ks: kstate, parent: u64) : kstate =
     let ks = Ctable::set_cap(ks, parent, pcap) in
     ks.errcode <- Error::SUCCESS
 
+(* Socket capability *)
+defn delete_socket(ks: kstate, cidx: u64) : kstate =
+  Ctable::delete(ks, cidx)
+
+defn derive_socket(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
+  let cap = ks.ctable[src] in
+  if (Cap::get_type(ncap) == Cap::CAPTY_SOCKET)
+      && (Cap::socket_get_chan(cap) <= Cap::socket_get_chan(ncap))
+      && (Cap::socket_get_mode(cap) <= Cap::socket_get_mode(ncap))
+      && (Cap::socket_get_perm(cap) <= Cap::socket_get_perm(ncap))
+      && (Cap::socket_get_tag(cap) == 0UL)
+      && (Cap::socket_get_tag(ncap) != 0UL)
+  then
+    let ks = Ctable::insert(ks, dst, ncap, src) in
+    ks.errcode <- Error::SUCCESS
+  else
+    ks.errcode <- Error::INVALID_DERIVATION
+
+defn revoke_socket(ks: kstate, parent: u64) : kstate =
+  ks.errcode <- Error::SUCCESS
+
 defn ipc_move_hook(ks: kstate, src: u64, dst: u64) : kstate =
   let cap = ks.ctable[src] in
   let cap_type = Cap::get_type(cap) in
@@ -314,6 +335,8 @@ defn delete(ks: kstate, cidx: u64) : kstate =
       delete_monitor(ks, cidx)
     else if cap_type == Cap::CAPTY_CHANNEL then
       delete_channel(ks, cidx)
+    else if cap_type == Cap::CAPTY_SOCKET then
+      delete_socket(ks, cidx)
     else
       ks.errcode <- Error::INVALID_CAPABILITY
 
@@ -334,6 +357,8 @@ defn derive(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
       derive_monitor(ks, src, dst, ncap)
     else if cap_type == Cap::CAPTY_CHANNEL then
       derive_channel(ks, src, dst, ncap)
+    else if cap_type == Cap::CAPTY_SOCKET then
+      derive_socket(ks, src, dst, ncap)
     else
       ks.errcode <- Error::INVALID_CAPABILITY
 
