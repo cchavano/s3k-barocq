@@ -36,7 +36,7 @@ test_sources = files(
     '../src/syscall.c',
     'main.c',
     'utils.c',
-) + test_runner + kernel_c
+) + test_runner + libkernel_c
 
 s3k_test = executable(
     's3k_test',

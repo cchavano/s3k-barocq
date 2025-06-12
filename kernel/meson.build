@@ -55,39 +55,14 @@ link_args = [
     platdir / 'linker.ld',
 ]
 
-barocq = find_program('barocq', required: true)
 
-kernel_br = files(
-	'brc/config.br',
-	'brc/error.br',
-	'brc/machine.br',
-	'brc/types.br',
-	'brc/capgen/cap.br',
-	'brc/vreg.br',
-	'brc/proc.br',
-	'brc/sched.br',
-	'brc/ctable.br',
-	'brc/ptable.br',
-	'brc/cap_ops.br',
-	'brc/pmp.br',
-	'brc/monitor.br',
-	'brc/channels.br',
-	'brc/ipc.br',
-	'brc/syscall.br'
-)
-
-kernel_c = custom_target(
-    'kernel_c',
-    input: kernel_br,
-    output: ['libkernel.c', 'libkernel.h'],
-    command: [barocq, '@INPUT@', '-o', '@OUTPUT0@', '-gen-header'],
-)
+subdir('brc')
 
 include_directories = include_directories('include')
 
 elf = executable(
     's3k.elf',
-    sources: sources + kernel_c,
+    sources: sources + libkernel_c,
     include_directories: include_directories,
     c_args: c_args,
     link_args: link_args,
