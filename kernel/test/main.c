@@ -841,6 +841,47 @@ void test_Syscall_cap_derive_monitor_valid1(void)
 	TEST_ASSERT_EQUAL_UINT64(cap3.raw, ks.ctable[dst3]);
 }
 
+/*
+ * Testing monitor revocation
+ */
+void test_Syscall_cap_revoke_monitor_valid1(void)
+{
+	int pid = 0; // Process ID
+	int src = 4; // Source capability index
+	int dst1 = 8; // Destination capability index
+	cap_t cap1 = cap_mk_monitor(0, 8);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_MONITOR,
+				 Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
+	Syscall_cap_revoke(&ks, pid, src);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, Cap_monitor_get_mrk(ks.ctable[src]));
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+}
+
+/*
+ * Testing monitor revocation
+ */
+void test_Syscall_cap_revoke_monitor_valid2(void)
+{
+	int pid = 0; // Process ID
+	int src = 4; // Source capability index
+	int dst1 = 8; // Destination capability index
+	cap_t cap1 = cap_mk_monitor(0, 8);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_MONITOR,
+				 Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_delete(&ks, pid, dst1);
+	TEST_ASSERT_EQUAL_UINT64(8, Cap_monitor_get_mrk(ks.ctable[src]));
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	Syscall_cap_revoke(&ks, pid, src);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, Cap_monitor_get_mrk(ks.ctable[src]));
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+}
+
 void test_Syscall_cap_mon_resume_suspend_valid1(void)
 {
 	int pid = 0; // Process ID
@@ -1075,4 +1116,24 @@ void test_Syscall_cap_derive_channel_invalid6(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
 	TEST_ASSERT_EQUAL_UINT64(0, Cap_channel_get_mrk(ks.ctable[src]));
+}
+
+/*
+ * Testing channel revocation
+ */
+void test_Syscall_cap_revoke_channel_valid1(void)
+{
+	int pid = 0; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	cap_t cap1 = cap_mk_channel(0, 8);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
+				 Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
+	Syscall_cap_revoke(&ks, pid, src);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, Cap_channel_get_mrk(ks.ctable[src]));
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
 }

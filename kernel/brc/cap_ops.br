@@ -180,7 +180,7 @@ defn revoke_monitor(ks: kstate, parent: u64) : kstate =
   let child = ks.cnext[parent] in
   let ccap = ks.ctable[child] in
   if (Cap::get_type(ccap) == Cap::CAPTY_MONITOR)
-      && (Cap::monitor_get_bgn(pcap) <= Cap::monitor_get_bgn(pcap))
+      && (Cap::monitor_get_bgn(ccap) <= Cap::monitor_get_end(pcap))
   then
     let ks = Ctable::delete(ks, child) in
     let pcap = Cap::monitor_set_mrk(pcap, Cap::monitor_get_mrk(ccap)) in
@@ -207,6 +207,10 @@ defn derive_monitor(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
   else
     ks.errcode <- Error::INVALID_DERIVATION
 
+(* Channel capability *)
+defn delete_channel(ks: kstate, cidx: u64) : kstate =
+  Ctable::delete(ks, cidx)
+
 defn derive_channel(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
   let cap = ks.ctable[src] in
   if (Cap::get_type(ncap) == Cap::CAPTY_CHANNEL)
@@ -228,6 +232,25 @@ defn derive_channel(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
     ks.errcode <- Error::SUCCESS
   else
     ks.errcode <- Error::INVALID_DERIVATION
+
+defn revoke_channel(ks: kstate, parent: u64) : kstate =
+  let pcap = ks.ctable[parent] in
+  let child = ks.cnext[parent] in
+  let ccap = ks.ctable[child] in
+  if (Cap::get_type(ccap) == Cap::CAPTY_CHANNEL)
+      && (Cap::channel_get_bgn(ccap) <= Cap::channel_get_end(pcap))
+  then
+    let ks = Ctable::delete(ks, child) in
+    let pcap = Cap::channel_set_mrk(pcap, Cap::channel_get_mrk(ccap)) in
+    let ks = Ctable::set_cap(ks, parent, pcap) in
+    if (Cap::channel_get_mrk(pcap) == Cap::channel_get_bgn(pcap)) then
+      ks.errcode <- Error::SUCCESS
+    else
+      ks.errcode <- Error::CONTINUE
+  else
+    let pcap = Cap::channel_set_mrk(pcap, Cap::channel_get_bgn(pcap)) in
+    let ks = Ctable::set_cap(ks, parent, pcap) in
+    ks.errcode <- Error::SUCCESS
 
 defn ipc_move_hook(ks: kstate, src: u64, dst: u64) : kstate =
   let cap = ks.ctable[src] in
@@ -284,6 +307,8 @@ defn delete(ks: kstate, cidx: u64) : kstate =
       delete_time(ks, cidx)
     else if cap_type == Cap::CAPTY_MONITOR then
       delete_monitor(ks, cidx)
+    else if cap_type == Cap::CAPTY_CHANNEL then
+      delete_channel(ks, cidx)
     else
       ks.errcode <- Error::INVALID_CAPABILITY
 
