@@ -276,6 +276,7 @@ defn sock_sendrecv(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64, send_cap
     let sock_idx = Cap_ops::cap_idx_from_pid(pid, sock_idx) in
     let buf_idx = Cap_ops::cap_idx_from_pid(pid, cap_idx) in
     let ks = Ipc::msg_send_cap_set(ks, send_cap) in
+    let ks = Ipc::msg_buf_idx_set(ks, buf_idx) in
     let ks = Ipc::msg_data_set(ks, 0UL, msg_data[0UL]) in
     let ks = Ipc::msg_data_set(ks, 1UL, msg_data[1UL]) in
     let ks = Ipc::msg_data_set(ks, 2UL, msg_data[2UL]) in
