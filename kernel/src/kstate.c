@@ -26,6 +26,7 @@ static u64 _slots[S3K_SLOT_CNT];
 
 void kstate_init(const cap_t init_caps[], size_t size)
 {
+	// Setup the kernel state
 	ks = (struct Types_kstate) {0};
 	ks.cnext = _cnext;
 	ks.cprev = _cprev;
@@ -34,16 +35,20 @@ void kstate_init(const cap_t init_caps[], size_t size)
 	ks.ptable = _ptable;
 	ks.tslots = _slots;
 
+	// Zero the capability table
 	for (unsigned int i = 0; i < S3K_PROC_CNT * S3K_CAP_CNT; i++) {
 		ks.cnext[i] = 0;
 		ks.cprev[i] = 0;
 		ks.ctable[i] = 0;
 	}
 	
+	// Zero the virtual registers
 	for (unsigned int i = 0; i < 8; i++) {
 		ks.vregs[i] = 0;
 	}
+	ks.errcode = 0;
 
+	// Zero and intialize the process table
 	for (unsigned int i = 0; i < S3K_PROC_CNT; i++) {
 		_procs[i] = (struct Types_proc_t) {0};
 		_ptable[i] = &_procs[i];
@@ -57,10 +62,12 @@ void kstate_init(const cap_t init_caps[], size_t size)
 		ks.ptable[i]->pid = i;
 	}
 
+	// Zero the time slots
 	for (unsigned int i = 0; i < S3K_SLOT_CNT; i++) {
 		ks.tslots[i] = 0;
 	}
 
+	// Populate the capability table with initial capabilities
 	unsigned int prev = 0;
 	for (unsigned int i = 0; i < size; i++) {
 		if (init_caps[i].type == CAPTY_NONE)
@@ -68,6 +75,7 @@ void kstate_init(const cap_t init_caps[], size_t size)
 		Ctable_insert(&ks, i, init_caps[i].raw, prev);
 		prev = i;
 		if (init_caps[i].type == Cap_CAPTY_TIME) {
+			// Update the time slots when inserting a time capability 
 			Sched_update(&ks, 0, init_caps[i].time.end,
 					init_caps[i].time.mrk,
 					init_caps[i].time.end);
