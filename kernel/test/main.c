@@ -552,6 +552,9 @@ void test_Syscall_cap_revoke_pmp(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
 }
 
+/*
+ * Derives a valid time capability.
+ */
 void test_Syscall_cap_derive_time_valid1(void)
 {
 	int pid = 0; // Process ID
@@ -611,6 +614,9 @@ void test_Syscall_cap_derive_delete_time2(void)
 	TEST_ASSERT_TRUE(check_schedule(pid, 16, 32));
 }
 
+/*
+ * Checks that revocation revokes a time capability correctly.
+ */
 void test_Syscall_cap_revoke_time1(void)
 {
 	rtc_time_set(0);
