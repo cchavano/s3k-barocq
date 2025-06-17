@@ -84,6 +84,12 @@ typedef enum {
 	SYSCALL_SOCK_RECV,
 	SYSCALL_SOCK_SENDRECV,
 
+	// Barocq basic info & registers
+	BR_SYSCALL_GET_INFO,
+	BR_SYSCALL_REG_READ,
+	BR_SYSCALL_REG_WRITE,
+	BR_SYSCALL_SLEEP,
+
 	// Barocq capability management calls
 	BR_SYSCALL_CAP_READ,
 	BR_SYSCALL_CAP_MOVE,

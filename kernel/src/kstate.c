@@ -2,9 +2,9 @@
 
 #include "kprint.h"
 #include "libkernel.h"
+#include "macro.h"
 #include "pmp.h"
 #include "proc.h"
-#include "macro.h"
 
 struct Types_kstate ks;
 

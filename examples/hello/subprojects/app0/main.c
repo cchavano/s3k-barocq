@@ -55,6 +55,6 @@ int main(void)
 
 	while (1) {
 		serio_printf("Hello from app0!\n");
-		s3k_sleep(0);
+		s3k_br_sleep(0);
 	}
 }

@@ -36,6 +36,12 @@ typedef enum {
 	S3K_SYS_SOCK_RECV,
 	S3K_SYS_SOCK_SENDRECV,
 
+	// Barocq basic info & registers
+	S3K_BR_SYS_GET_INFO,
+	S3K_BR_SYS_REG_READ,
+	S3K_BR_SYS_REG_WRITE,
+	S3K_BR_SYS_SLEEP,
+
 	// Barocq capability management
 	S3K_BR_SYS_CAP_READ,
 	S3K_BR_SYS_CAP_MOVE,
@@ -244,37 +250,37 @@ _Static_assert(sizeof(sys_args_t) == 64, "sys_args_t has the wrong size");
 		(s3k_ret_t){.err = t0, .val = a0};                             \
 	})
 
-uint64_t s3k_get_pid(void)
-{
-	sys_args_t args = {.get_info = {0}};
-	return DO_ECALL(S3K_SYS_GET_INFO, args, sizeof(args.get_info)).val;
-}
+// uint64_t s3k_get_pid(void)
+// {
+// 	sys_args_t args = {.get_info = {0}};
+// 	return DO_ECALL(S3K_SYS_GET_INFO, args, sizeof(args.get_info)).val;
+// }
 
-uint64_t s3k_get_time(void)
-{
-	sys_args_t args = {.get_info = {1}};
-	return DO_ECALL(S3K_SYS_GET_INFO, args, sizeof(args.get_info)).val;
-}
+// uint64_t s3k_get_time(void)
+// {
+// 	sys_args_t args = {.get_info = {1}};
+// 	return DO_ECALL(S3K_SYS_GET_INFO, args, sizeof(args.get_info)).val;
+// }
 
-uint64_t s3k_get_timeout(void)
-{
-	sys_args_t args = {.get_info = {2}};
-	return DO_ECALL(S3K_SYS_GET_INFO, args, sizeof(args.get_info)).val;
-}
+// uint64_t s3k_get_timeout(void)
+// {
+// 	sys_args_t args = {.get_info = {2}};
+// 	return DO_ECALL(S3K_SYS_GET_INFO, args, sizeof(args.get_info)).val;
+// }
 
-uint64_t s3k_reg_read(s3k_reg_t reg)
-{
-	sys_args_t args = {.reg_read = {reg}};
-	return DO_ECALL(S3K_SYS_REG_READ, args, sizeof(args.reg_read)).val;
-}
+// uint64_t s3k_reg_read(s3k_reg_t reg)
+// {
+// 	sys_args_t args = {.reg_read = {reg}};
+// 	return DO_ECALL(S3K_SYS_REG_READ, args, sizeof(args.reg_read)).val;
+// }
 
-uint64_t s3k_reg_write(s3k_reg_t reg, uint64_t val)
-{
-	sys_args_t args = {
-	    .reg_write = {reg, val}
-	   };
-	return DO_ECALL(S3K_SYS_REG_WRITE, args, sizeof(args.reg_write)).val;
-}
+// uint64_t s3k_reg_write(s3k_reg_t reg, uint64_t val)
+// {
+// 	sys_args_t args = {
+// 	    .reg_write = {reg, val}
+// 	   };
+// 	return DO_ECALL(S3K_SYS_REG_WRITE, args, sizeof(args.reg_write)).val;
+// }
 
 void s3k_sync(void)
 {
@@ -288,11 +294,11 @@ void s3k_sync_mem(void)
 	DO_ECALL(S3K_SYS_SYNC, args, sizeof(args.sync));
 }
 
-void s3k_sleep(uint64_t time)
-{
-	sys_args_t args = {.sleep = {time}};
-	DO_ECALL(S3K_SYS_SLEEP, args, sizeof(args.sleep));
-}
+// void s3k_sleep(uint64_t time)
+// {
+// 	sys_args_t args = {.sleep = {time}};
+// 	DO_ECALL(S3K_SYS_SLEEP, args, sizeof(args.sleep));
+// }
 
 // s3k_err_t s3k_cap_read(s3k_cidx_t idx, s3k_cap_t *cap)
 // {
@@ -701,6 +707,46 @@ void s3k_sleep(uint64_t time)
 // }
 
 // System calls to the Barocq implementation
+
+// Info & registers ========================================
+
+uint64_t s3k_br_get_pid(void)
+{
+	sys_args_t args = {.get_info = {0}};
+	return DO_ECALL(S3K_BR_SYS_GET_INFO, args, sizeof(args.get_info)).val;
+}
+
+uint64_t s3k_br_get_time(void)
+{
+	sys_args_t args = {.get_info = {1}};
+	return DO_ECALL(S3K_BR_SYS_GET_INFO, args, sizeof(args.get_info)).val;
+}
+
+uint64_t s3k_br_get_timeout(void)
+{
+	sys_args_t args = {.get_info = {2}};
+	return DO_ECALL(S3K_BR_SYS_GET_INFO, args, sizeof(args.get_info)).val;
+}
+
+uint64_t s3k_br_reg_read(s3k_reg_t reg)
+{
+	sys_args_t args = {.reg_read = {reg}};
+	return DO_ECALL(S3K_BR_SYS_REG_READ, args, sizeof(args.reg_read)).val;
+}
+
+uint64_t s3k_br_reg_write(s3k_reg_t reg, uint64_t val)
+{
+	sys_args_t args = {
+	    .reg_write = {reg, val}
+	   };
+	return DO_ECALL(S3K_BR_SYS_REG_WRITE, args, sizeof(args.reg_write)).val;
+}
+
+void s3k_br_sleep(uint64_t time)
+{
+	sys_args_t args = {.sleep = {time}};
+	DO_ECALL(S3K_SYS_SLEEP, args, sizeof(args.sleep));
+}
 
 // Cap management ==========================================
 

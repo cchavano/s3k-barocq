@@ -846,8 +846,8 @@ void test_Syscall_cap_derive_monitor_valid1(void)
  */
 void test_Syscall_cap_revoke_monitor_valid1(void)
 {
-	int pid = 0; // Process ID
-	int src = 4; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 4;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	cap_t cap1 = cap_mk_monitor(0, 8);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_MONITOR,
@@ -866,8 +866,8 @@ void test_Syscall_cap_revoke_monitor_valid1(void)
  */
 void test_Syscall_cap_revoke_monitor_valid2(void)
 {
-	int pid = 0; // Process ID
-	int src = 4; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 4;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	cap_t cap1 = cap_mk_monitor(0, 8);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_MONITOR,
@@ -964,8 +964,8 @@ void test_Syscall_cap_derive_channel_valid1(void)
  */
 void test_Syscall_cap_derive_channel_valid3(void)
 {
-	int pid = 0; // Process ID
-	int src = 5; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	int chan = 4;
 	int mode = Ipc_IPC_YIELD;
@@ -985,8 +985,8 @@ void test_Syscall_cap_derive_channel_valid3(void)
  */
 void test_Syscall_cap_derive_channel_valid4(void)
 {
-	int pid = 0; // Process ID
-	int src = 5; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	int chan = 4;
 	int mode = Ipc_IPC_NOYIELD;
@@ -1006,8 +1006,8 @@ void test_Syscall_cap_derive_channel_valid4(void)
  */
 void test_Syscall_cap_derive_channel_invalid1(void)
 {
-	int pid = 0; // Process ID
-	int src = 5; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	cap_t cap1 = cap_mk_channel(0, 20);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
@@ -1022,8 +1022,8 @@ void test_Syscall_cap_derive_channel_invalid1(void)
  */
 void test_Syscall_cap_derive_channel_invalid2(void)
 {
-	int pid = 0; // Process ID
-	int src = 5; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	cap_t cap1 = cap_mk_channel(4, 4);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
@@ -1038,8 +1038,8 @@ void test_Syscall_cap_derive_channel_invalid2(void)
  */
 void test_Syscall_cap_derive_channel_invalid3(void)
 {
-	int pid = 0; // Process ID
-	int src = 5; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	int chan = 4;
 	int mode = Ipc_IPC_YIELD;
@@ -1059,8 +1059,8 @@ void test_Syscall_cap_derive_channel_invalid3(void)
  */
 void test_Syscall_cap_derive_channel_invalid4(void)
 {
-	int pid = 0; // Process ID
-	int src = 5; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	int chan = 4;
 	int mode = Ipc_IPC_NOYIELD;
@@ -1080,8 +1080,8 @@ void test_Syscall_cap_derive_channel_invalid4(void)
  */
 void test_Syscall_cap_derive_channel_invalid5(void)
 {
-	int pid = 0; // Process ID
-	int src = 5; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	int chan = 4;
 	int mode = 3;
@@ -1096,14 +1096,13 @@ void test_Syscall_cap_derive_channel_invalid5(void)
 	TEST_ASSERT_EQUAL_UINT64(0, Cap_channel_get_mrk(ks.ctable[src]));
 }
 
-
 /*
  * Invalid socket channel
  */
 void test_Syscall_cap_derive_channel_invalid6(void)
 {
-	int pid = 0; // Process ID
-	int src = 5; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	int chan = 8;
 	int mode = Ipc_IPC_YIELD;
@@ -1123,8 +1122,8 @@ void test_Syscall_cap_derive_channel_invalid6(void)
  */
 void test_Syscall_cap_revoke_channel_valid1(void)
 {
-	int pid = 0; // Process ID
-	int src = 5; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	cap_t cap1 = cap_mk_channel(0, 8);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
@@ -1137,6 +1136,7 @@ void test_Syscall_cap_revoke_channel_valid1(void)
 	TEST_ASSERT_EQUAL_UINT64(0, Cap_channel_get_mrk(ks.ctable[src]));
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
 }
+
 /*
  * Testing channel revocation
  */
@@ -1144,10 +1144,10 @@ void test_Syscall_cap_revoke_channel_success1(void)
 {
 	rtc_time_set(0);
 	rtc_timeout_set(0, 1000); // Reset timeout
-	int pid = 0; // Process ID
-	int src = 5; // Source capability index
-	int dst1 = 8; // Destination capability index
-	int dst2 = 9; // Destination capability index
+	int pid = 0;		  // Process ID
+	int src = 5;		  // Source capability index
+	int dst1 = 8;		  // Destination capability index
+	int dst2 = 9;		  // Destination capability index
 	int chan = 4;
 	int mode = Ipc_IPC_YIELD;
 	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
@@ -1173,10 +1173,10 @@ void test_Syscall_cap_revoke_channel_preempted1(void)
 {
 	rtc_time_set(1);
 	rtc_timeout_set(0, 0); // Reset timeout
-	int pid = 0; // Process ID
-	int src = 5; // Source capability index
-	int dst1 = 8; // Destination capability index
-	int dst2 = 9; // Destination capability index
+	int pid = 0;	       // Process ID
+	int src = 5;	       // Source capability index
+	int dst1 = 8;	       // Destination capability index
+	int dst2 = 9;	       // Destination capability index
 	int chan = 4;
 	int mode = Ipc_IPC_YIELD;
 	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
@@ -1190,15 +1190,15 @@ void test_Syscall_cap_revoke_channel_preempted1(void)
 
 	Syscall_cap_revoke(&ks, pid, src);
 	TEST_ASSERT_EQUAL_UINT64(Error_PREEMPTED, ks.ptable[pid]->t0);
-	TEST_ASSERT_EQUAL_UINT64(chan+1, Cap_channel_get_mrk(ks.ctable[src]));
+	TEST_ASSERT_EQUAL_UINT64(chan + 1, Cap_channel_get_mrk(ks.ctable[src]));
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
 	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ctable[dst2]);
 }
 
 void test_Syscall_cap_socket_derive_success1(void)
 {
-	int pid = 0; // Process ID
-	int src = 5; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	int dst2 = 9; // Destination capability index
 	int chan = 4;
@@ -1220,11 +1220,11 @@ void test_Syscall_cap_socket_derive_success1(void)
 void test_Syscall_sock_send_success1(void)
 {
 	rtc_timeout_set(0, 1000); // Reset timeout
-	int server = 0; // Process ID
-	int client = 1; // Process ID
-	int src = 5; // Source capability index
-	int dst1 = 8; // Destination capability index
-	int dst2 = 9; // Destination capability index
+	int server = 0;		  // Process ID
+	int client = 1;		  // Process ID
+	int src = 5;		  // Source capability index
+	int dst1 = 8;		  // Destination capability index
+	int dst2 = 9;		  // Destination capability index
 	u64 chan = 4;
 	int mode = Ipc_IPC_NOYIELD;
 	int perm = 0;
@@ -1244,7 +1244,8 @@ void test_Syscall_sock_send_success1(void)
 	Syscall_sock_recv(&ks, server, dst1, 0);
 	Ptable_release(&ks, server);
 	TEST_ASSERT_EQUAL_UINT64(Error_TIMEOUT, ks.ptable[server]->t0);
-	TEST_ASSERT_EQUAL_UINT64(PSF_BLOCKED | chan << 48, ks.ptable[server]->state);
+	TEST_ASSERT_EQUAL_UINT64(PSF_BLOCKED | chan << 48,
+				 ks.ptable[server]->state);
 
 	u64 msg[4] = {0x2, 0x4, 0x8, 0x10};
 	Syscall_sock_send(&ks, client, dst2, 0, 0, msg);
@@ -1263,11 +1264,11 @@ void test_Syscall_sock_send_success1(void)
 void test_Syscall_sock_send_success2(void)
 {
 	rtc_timeout_set(0, 1000); // Reset timeout
-	int server = 0; // Process ID
-	int client = 1; // Process ID
-	int src = 5; // Source capability index
-	int dst1 = 8; // Destination capability index
-	int dst2 = 9; // Destination capability index
+	int server = 0;		  // Process ID
+	int client = 1;		  // Process ID
+	int src = 5;		  // Source capability index
+	int dst1 = 8;		  // Destination capability index
+	int dst2 = 9;		  // Destination capability index
 	u64 chan = 4;
 	int mode = Ipc_IPC_YIELD;
 	int perm = Ipc_IPC_SCAP;
@@ -1287,7 +1288,8 @@ void test_Syscall_sock_send_success2(void)
 	Syscall_sock_recv(&ks, server, dst1, 0);
 	Ptable_release(&ks, server);
 	TEST_ASSERT_EQUAL_UINT64(Error_TIMEOUT, ks.ptable[server]->t0);
-	TEST_ASSERT_EQUAL_UINT64(PSF_BLOCKED | chan << 48, ks.ptable[server]->state);
+	TEST_ASSERT_EQUAL_UINT64(PSF_BLOCKED | chan << 48,
+				 ks.ptable[server]->state);
 
 	u64 msg[4] = {0x2, 0x4, 0x8, 0x10};
 	Syscall_sock_send(&ks, client, dst2, 0, 0, msg);
@@ -1307,11 +1309,11 @@ void test_Syscall_sock_send_success2(void)
 void test_Syscall_sock_send_success3(void)
 {
 	rtc_timeout_set(0, 1000); // Reset timeout
-	int server = 0; // Process ID
-	int client = 1; // Process ID
-	int src = 5; // Source capability index
-	int dst1 = 8; // Destination capability index
-	int dst2 = 9; // Destination capability index
+	int server = 0;		  // Process ID
+	int client = 1;		  // Process ID
+	int src = 5;		  // Source capability index
+	int dst1 = 8;		  // Destination capability index
+	int dst2 = 9;		  // Destination capability index
 	u64 chan = 4;
 	int mode = Ipc_IPC_YIELD;
 	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
@@ -1331,7 +1333,8 @@ void test_Syscall_sock_send_success3(void)
 	Syscall_sock_recv(&ks, server, dst1, 10);
 	Ptable_release(&ks, server);
 	TEST_ASSERT_EQUAL_UINT64(Error_TIMEOUT, ks.ptable[server]->t0);
-	TEST_ASSERT_EQUAL_UINT64(PSF_BLOCKED | chan << 48, ks.ptable[server]->state);
+	TEST_ASSERT_EQUAL_UINT64(PSF_BLOCKED | chan << 48,
+				 ks.ptable[server]->state);
 
 	u64 msg[4] = {0x2, 0x4, 0x8, 0x10};
 	Syscall_sock_send(&ks, client, dst2, dst2, true, msg);

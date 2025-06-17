@@ -13,7 +13,6 @@ extern char __uart[];
 
 extern struct Types_kstate ks;
 
-
 void kernel_init(void)
 {
 	kputs("# Kernel init");
