@@ -91,7 +91,8 @@ defn do_send(ks: kstate, sock_idx: u64, next_pid: pid_t) : kstate =
       Vreg::write(ks, Vreg::V0, recv_pid)
     else 
       let ks = Ptable::proc_timeout_set(ks, recv_pid, 0UL) in
-      Ptable::release(ks, recv_pid)
+      let ks = Ptable::release(ks, recv_pid) in
+      Vreg::write(ks, Vreg::V0, next_pid)
   else
     ks
 
