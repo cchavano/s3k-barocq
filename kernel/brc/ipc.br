@@ -37,7 +37,7 @@ defn do_send_check(ks: kstate, sock: cap_t, chan_idx: u64, curr_time: u64, timeo
   else
     let is_server = Cap::socket_get_tag(sock) == 0UL in
     if is_server then
-      let recv_pid = ks.channels[chan_idx].server in
+      let recv_pid = ks.channels[chan_idx].client in
       if recv_pid == Proc::NULL then
         ks.errcode <- Error::NO_RECEIVER
       else
@@ -48,7 +48,7 @@ defn do_send_check(ks: kstate, sock: cap_t, chan_idx: u64, curr_time: u64, timeo
         else
           ks.errcode <- Error::NO_RECEIVER
     else
-      let recv_pid = ks.channels[chan_idx].client in
+      let recv_pid = ks.channels[chan_idx].server in
       if recv_pid == Proc::NULL then
         ks.errcode <- Error::NO_RECEIVER
       else if (Cap::socket_get_mode(sock) == IPC_YIELD)
