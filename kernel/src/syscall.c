@@ -44,7 +44,7 @@ proc_t *reg_read(proc_t *const p, const sys_args_t *args)
 proc_t *_sync(proc_t *const p, const sys_args_t *args)
 {
 	(void)args;
-	p->timeout = 0;
+	Syscall_sync(&ks, p->pid);
 	return NULL;
 }
 
