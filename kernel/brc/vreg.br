@@ -3,6 +3,7 @@ module Vreg
 import Types
 
 defn V0 : u64 = 0UL
+defn V1 : u64 = 1UL
 
 defn read(ks: kstate, rid: u64) : u64 =
   ks.vregs[rid]

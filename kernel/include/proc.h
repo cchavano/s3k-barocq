@@ -29,8 +29,8 @@ void proc_init(word_t payload);
  * @param pid The process ID to look for.
  * @return A pointer to the process corresponding to the given PID.
  */
+proc_t *proc_get_opt(pid_t pid);
 proc_t *proc_get(pid_t pid);
-
 bool proc_acquire(proc_t *proc);
 void proc_release(proc_t *proc);
 proc_t *proc_pmp_sync(proc_t *proc);

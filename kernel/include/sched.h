@@ -16,15 +16,6 @@
 #include <stdint.h>
 
 /**
- * @brief Initialize the scheduler.
- *
- * This function initializes the scheduler, which is responsible for managing
- * the execution of processes on the system. It sets up the necessary data
- * structures and configurations to support scheduling.
- */
-void sched_init(void);
-
-/**
  * @brief Find the next process to schedule.
  *
  * This function finds the next process to schedule based on the current
@@ -32,13 +23,9 @@ void sched_init(void);
  */
 proc_t *sched(void);
 
-/// Let pid run on hartid, begin-end.
-void sched_update(uint64_t pid, uint64_t end, uint64_t from, uint64_t to);
-
-/// Delete scheduling at hartid, begin-end.
-void sched_delete(uint64_t from, uint64_t to);
-
+// Let pid run on hartid, begin-end.
 struct Types_kstate *Sched_update(struct Types_kstate *ks, u64 pid, u64 end,
 				  u64 from, u64 to);
 
+// Delete scheduling at hartid, begin-end.
 struct Types_kstate *Sched_delete(struct Types_kstate *ks, u64 from, u64 to);

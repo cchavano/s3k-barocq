@@ -1,5 +1,29 @@
 module Sched
 
-decl delete : (@write Types::kstate, u64, u64) -> Types::kstate
+import Types
 
-decl update : (@write Types::kstate, u64, u64, u64, u64) -> Types::kstate
+decl delete : (@write kstate, u64, u64) -> kstate
+
+decl update : (@write kstate, u64, u64, u64, u64) -> kstate
+
+defn slot_info_get(ks: kstate, slot: u64) : kstate =
+  let entry = ks.tslots[slot % Config::S3K_SLOT_CNT] in
+  let pid = (entry >> 8UL) & 0xFFUL in
+  let length = entry & 0xFFUL in
+  let ks = Vreg::write(ks, Vreg::V0, pid) in
+  Vreg::write(ks, Vreg::V1, length)
+
+defn fetch(ks: kstate, slot: u64) : kstate =
+  let ks = slot_info_get(ks, slot) in
+  let length = Vreg::read(ks, Vreg::V1) in
+  if length == 0UL then
+    Vreg::write(ks, Vreg::V0, Proc::NULL)
+  else
+    let pid = Vreg::read(ks, Vreg::V0) in
+    let ks = Ptable::acquire(ks, pid) in
+    if Vreg::read(ks, Vreg::V0) as bool then
+      Vreg::write(ks, Vreg::V0, Proc::NULL)
+    else
+      let timeout = (slot + length) * Config::S3K_SLOT_LEN() in
+      let ks = Ptable::proc_timeout_set(ks, pid, timeout) in
+      Vreg::write(ks, Vreg::V0, pid)

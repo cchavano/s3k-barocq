@@ -1,5 +1,8 @@
 module Config
 
+(* RTC frequency *)
+defn S3K_RTC_HZ : u64 = 1000000UL
+
 (* Number of processes *)
 defn S3K_PROC_CNT : u64 = 8UL
 
@@ -14,6 +17,9 @@ defn S3K_SLOT_CNT : u64 = 32UL
 
 (* Number of PMP slots *)
 defn S3K_PMP_CNT : u64 = 8UL
+
+defn S3K_SLOT_LEN() : u64 =
+  S3K_RTC_HZ / S3K_SLOT_CNT
 
 (* Min logarithmic size of a memory slice *)
 defn MIN_BLOCK_SIZE : u64 = 12UL

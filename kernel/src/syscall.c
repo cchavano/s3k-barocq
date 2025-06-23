@@ -6,6 +6,7 @@
 #include "csr.h"
 #include "kprint.h"
 #include "libkernel.h"
+#include "proc.h"
 #include "rtc.h"
 #include "sched.h"
 #include "trap.h"
@@ -17,9 +18,8 @@ extern struct Types_kstate ks;
 
 static inline proc_t *next_proc()
 {
-	u64 next_pid = Vreg_read(&ks, 0);
-	proc_t *next = next_pid == Proc_NULL ? NULL : ks.ptable[next_pid];
-	return next;
+	u64 next_pid = Vreg_read(&ks, Vreg_V0);
+	return proc_get_opt(next_pid);
 }
 
 proc_t *get_info(proc_t *const p, const sys_args_t *args)

@@ -17,6 +17,11 @@ void proc_init(word_t payload)
 	ks.ptable[0]->pc = (word_t)payload;
 }
 
+proc_t *proc_get_opt(pid_t pid)
+{
+	return pid == Proc_NULL ? NULL : ks.ptable[pid];
+}
+
 proc_t *proc_get(pid_t pid)
 {
 	KASSERT(pid < S3K_PROC_CNT);
