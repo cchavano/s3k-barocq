@@ -8,12 +8,16 @@
  * a temporary fix in sched_next.
  */
 
-#include "libkernel.h"
-#include "macro.h"
 #include "proc.h"
+#include "types.h"
 
 #include <stddef.h>
-#include <stdint.h>
+
+// Let pid run on hartid, begin-end.
+kstate_t *Sched_update(kstate_t *ks, u64 pid, u64 end, u64 from, u64 to);
+
+// Delete scheduling at hartid, begin-end.
+kstate_t *Sched_delete(kstate_t *ks, u64 from, u64 to);
 
 /**
  * @brief Find the next process to schedule.
@@ -23,9 +27,4 @@
  */
 proc_t *sched(void);
 
-// Let pid run on hartid, begin-end.
-struct Types_kstate *Sched_update(struct Types_kstate *ks, u64 pid, u64 end,
-				  u64 from, u64 to);
-
-// Delete scheduling at hartid, begin-end.
-struct Types_kstate *Sched_delete(struct Types_kstate *ks, u64 from, u64 to);
+kstate_t *Sched_sched(kstate_t *ks);

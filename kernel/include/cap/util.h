@@ -1,4 +1,5 @@
 #pragma once
+
 #include "types.h"
 
-void cap_print(const cap_t cap);
+void cap_print(cap_t cap);

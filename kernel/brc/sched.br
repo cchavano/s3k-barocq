@@ -27,3 +27,5 @@ defn fetch(ks: kstate, slot: u64) : kstate =
       let timeout = (slot + length) * Config::S3K_SLOT_LEN() in
       let ks = Ptable::proc_timeout_set(ks, pid, timeout) in
       Vreg::write(ks, Vreg::V0, pid)
+
+decl sched : (@write kstate) -> kstate

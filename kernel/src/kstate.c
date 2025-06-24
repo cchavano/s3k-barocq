@@ -5,7 +5,7 @@
 #include "macro.h"
 #include "proc.h"
 
-struct Types_kstate ks;
+kstate_t ks;
 
 // Capabilities
 #define TOTAL_CAP_CNT (S3K_PROC_CNT * S3K_CAP_CNT)

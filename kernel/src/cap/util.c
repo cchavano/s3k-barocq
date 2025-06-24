@@ -1,7 +1,6 @@
 #include "cap/util.h"
 
 #include "kprint.h"
-#include "libkernel.h"
 
 const char *rwx2str(rwx_t rwx)
 {

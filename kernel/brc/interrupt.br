@@ -1,0 +1,7 @@
+module Interrupt
+
+import Types
+
+defn handler(ks: kstate, pid: pid_t) : kstate =
+  let ks = Ptable::release(ks, pid) in
+  Sched::sched(ks)

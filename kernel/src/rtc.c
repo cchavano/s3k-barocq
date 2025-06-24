@@ -1,37 +1,24 @@
 #include "rtc.h"
 
-#include "libkernel.h"
-#include "machine.h"
+extern volatile u64 __mtime[];
+extern volatile u64 __mtimecmp[];
 
-extern volatile uint64_t __mtime[];
-extern volatile uint64_t __mtimecmp[];
-
-uint64_t rtc_time_get(void)
+u64 rtc_time_get(void)
 {
 	return __mtime[0];
 }
 
-u64 Machine_time_read(struct Machine_state *mc)
-{
-	return rtc_time_get();
-}
-
-u64 Machine_timeout_read(struct Machine_state *mc, u64 hart)
-{
-	return rtc_timeout_get(hart);
-}
-
-void rtc_time_set(uint64_t time)
+void rtc_time_set(u64 time)
 {
 	__mtime[0] = time;
 }
 
-uint64_t rtc_timeout_get(uint64_t hart)
+u64 rtc_timeout_get(u64 hart)
 {
 	return __mtimecmp[hart];
 }
 
-void rtc_timeout_set(uint64_t hart, uint64_t time)
+void rtc_timeout_set(u64 hart, u64 time)
 {
 	__mtimecmp[hart] = time;
 }

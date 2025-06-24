@@ -1,14 +1,14 @@
 #include "kprint.h"
 #include "kstate.h"
 #include "libkernel.h"
+#include "macro.h"
 #include "proc.h"
-#include "sched.h"
 #include "types.h"
 #include "uart/ns16550a.h"
 
 extern char __uart[];
 
-extern struct Types_kstate ks;
+extern kstate_t ks;
 
 void kernel_init(void)
 {

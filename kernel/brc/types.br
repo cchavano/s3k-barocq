@@ -32,7 +32,6 @@ type proc_t = {
   pmpaddr: array u64;
   pid: pid_t;
   timeout: u64;
-  serv_time: u64;
 }
 
 type channel = {

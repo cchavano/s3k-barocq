@@ -5,7 +5,7 @@
 #include "kassert.h"
 #include "libkernel.h"
 
-extern struct Types_kstate ks;
+extern kstate_t ks;
 
 void proc_init(word_t payload)
 {
@@ -27,17 +27,6 @@ proc_t *proc_get(pid_t pid)
 	KASSERT(pid < S3K_PROC_CNT);
 	KASSERT(ks.ptable[pid]->pid == pid);
 	return ks.ptable[pid];
-}
-
-bool proc_acquire(proc_t *proc)
-{
-	Ptable_acquire(&ks, proc->pid);
-	return ks.vregs[0];
-}
-
-void proc_release(proc_t *proc)
-{
-	Ptable_release(&ks, proc->pid);
 }
 
 proc_t *proc_pmp_sync(proc_t *proc)

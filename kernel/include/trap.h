@@ -5,9 +5,9 @@
  * @copyright MIT License
  * @author Henrik Karlsson (henrik10@kth.se)
  */
-#include "macro.h"
 
-#include <stdint.h>
+#include "macro.h"
+#include "proc.h"
 
 void trap_handle(void);
 void trap_entry(void) NORETURN;

@@ -87,6 +87,20 @@ defn proc_reg_write(ks: kstate, pid: pid_t, reg: u64, val: word_t) : kstate =
   let ptable = ptable[pid] <- proc in
   ks.ptable <- ptable
 
+defn proc_ecause_set(ks: kstate, pid: pid_t, val: u64) : kstate =
+  let ptable = ks.ptable in
+  let proc = ptable[pid] in
+  let proc = proc.ecause <- val in
+  let ptable = ptable[pid] <- proc in
+  ks.ptable <- ptable
+
+defn proc_eval_set(ks: kstate, pid: pid_t, val: u64) : kstate =
+  let ptable = ks.ptable in
+  let proc = ptable[pid] in
+  let proc = proc.eval <- val in
+  let ptable = ptable[pid] <- proc in
+  ks.ptable <- ptable
+
 defn proc_state_set(ks: kstate, pid: pid_t, val: u64) : kstate =
   let ptable = ks.ptable in
   let proc = ptable[pid] in

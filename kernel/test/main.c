@@ -8,7 +8,7 @@
 #include "types.h"
 #include "unity.h"
 
-extern struct Types_kstate ks;
+extern kstate_t ks;
 
 /*
  * Initializes the kernel state with a set of capabilities.

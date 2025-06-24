@@ -1,22 +1,25 @@
-#include <exception.h>
-#include <interrupt.h>
+#include <libkernel.h>
 #include <sched.h>
-#include <syscall.h>
 #include <trap.h>
 
-proc_t *trap_handler(proc_t *proc, uint64_t mcause, uint64_t mtval)
+extern kstate_t ks;
+
+proc_t *trap_handler(proc_t *proc, u64 mcause, u64 mtval)
 {
 	if (mcause == 8) {
-		proc_t *next = syscall_handler(proc);
+		Syscall_handler(&ks, proc->pid);
+		proc_t *next = proc_get_opt(Vreg_read(&ks, Vreg_V0));
 		if (next == proc)
 			trap_return(proc);
-		proc_release(proc);
+		Ptable_release(&ks, proc->pid);
 		if (next)
 			return next;
 		return sched();
-	} else if ((int64_t)mcause < 0) {
-		return interrupt_handler(proc, mcause, mtval);
+	} else if ((i64)mcause < 0) {
+		Interrupt_handler(&ks, proc->pid);
+		return proc_get(Vreg_read(&ks, Vreg_V0));
 	} else {
-		trap_return(exception_handler(proc, mcause, mtval));
+		Exception_handler(&ks, proc->pid, mcause, mtval);
+		trap_return(proc_get(Vreg_read(&ks, Vreg_V0)));
 	}
 }

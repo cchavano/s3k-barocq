@@ -1,0 +1,44 @@
+module Exception
+
+import Types
+
+defn ILLEGAL_INSTRUCTION : u64 = 0x2UL
+
+defn MRET : u64 = 0x30200073UL
+defn SRET : u64 = 0x10200074UL
+defn URET : u64 = 0x00200073UL
+
+defn delegate(ks: kstate, pid: pid_t, mcause: u64, mtval: u64) : kstate =
+  let ptable = ks.ptable in
+  let proc = ptable[pid] in
+  let proc1 = proc.ecause <- mcause in
+  let proc1 = proc1.eval <- mtval in
+  let proc1 = proc1.epc <- proc.pc in
+  let proc1 = proc1.esp <- proc.sp in
+  let proc1 = proc1.pc <- proc.tpc in
+  let proc1 = proc1.sp <- proc.tsp in
+  let ptable = ptable[pid] <- proc1 in
+  ks.ptable <- ptable
+
+defn trap_return(ks: kstate, pid: pid_t) : kstate =
+  let ptable = ks.ptable in
+  let proc = ptable[pid] in
+  let proc1 = proc.pc <- proc.epc in
+  let proc1 = proc1.sp <- proc.esp in
+  let proc1 = proc1.ecause <- 0UL in
+  let proc1 = proc1.eval <- 0UL in
+  let proc1 = proc1.epc <- 0UL in
+  let proc1 = proc1.esp <- 0UL in
+  let ptable = ptable[pid] <- proc1 in
+  ks.ptable <- ptable
+
+defn handler(ks: kstate, pid: pid_t, mcause: u64, mtval: u64) : kstate =
+  let ks =
+    if (mcause == ILLEGAL_INSTRUCTION)
+        && ((mtval == MRET) || (mtval == SRET) || (mtval == URET))
+    then
+      trap_return(ks, pid)
+    else
+      delegate(ks, pid, mcause, mtval)
+  in
+  Vreg::write(ks, Vreg::V0, pid)

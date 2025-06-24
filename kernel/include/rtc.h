@@ -2,11 +2,7 @@
 
 #include "libkernel.h"
 
-#include <stdint.h>
-
-uint64_t rtc_time_get(void);
-void rtc_time_set(uint64_t time);
-uint64_t rtc_timeout_get(uint64_t hart);
-void rtc_timeout_set(uint64_t hart, uint64_t time);
-u64 Machine_time_read(struct Machine_state *mc);
-u64 Machine_timeout_read(struct Machine_state *mc, u64 hart);
+u64 rtc_time_get(void);
+void rtc_time_set(u64 time);
+u64 rtc_timeout_get(u64 hart);
+void rtc_timeout_set(u64 hart, u64 time);
