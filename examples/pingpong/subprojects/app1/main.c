@@ -7,7 +7,7 @@ int main(void)
 	msg.send_cap = false;
 	msg.data[0] = 0;
 	while (1) {
-		s3k_reply_t reply = s3k_br_sock_sendrecv(3, &msg);
+		s3k_reply_t reply = s3k_sock_sendrecv(3, &msg);
 		if (reply.err == S3K_SUCCESS) {
 			// Process the reply from app1
 			serio_printf("Client: Received reply: tag=%d, data[0]=%d\n",
