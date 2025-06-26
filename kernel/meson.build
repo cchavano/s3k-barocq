@@ -38,9 +38,7 @@ c_args = [
     '-ffreestanding',
     '-Wno-unused-parameter',
     '-Wno-unused-but-set-variable',
-    '-Wno-parentheses',
     '-nostdlib',
-    '-fno-builtin',
     '-include',
     platdir / 'config.h',
     '-include',
@@ -50,9 +48,16 @@ c_args = [
 link_args = [
     '-nostartfiles',
     '-nostdlib',
-    '-fno-builtin',
-    '-T' + platdir / 'linker.ld',
+    '-T',
+    platdir / 'linker.ld',
 ]
+
+compiler = meson.get_compiler('c')
+
+if compiler.get_id() != 'ccomp'
+    c_args += ['-Wno-parentheses', '-fno-builtin']
+    link_args += ['-fno-builtin']
+endif
 
 machine_header = 'machine.h'
 
