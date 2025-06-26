@@ -8,8 +8,8 @@
 
 #include <stdio.h>
 
-static uint64_t __mtime[1];
-static uint64_t __mtimecmp[8];
+static u64 __mtime[1];
+static u64 __mtimecmp[8];
 static word_t pmpaddr[8];
 static word_t pmpcfg[2];
 
@@ -85,22 +85,22 @@ void kputc(char c)
 {
 }
 
-uint64_t rtc_time_get(void)
+u64 rtc_time_get(void)
 {
 	return __mtime[0]++;
 }
 
-void rtc_time_set(uint64_t time)
+void rtc_time_set(u64 time)
 {
 	__mtime[0] = time;
 }
 
-uint64_t rtc_timeout_get(uint64_t hart)
+u64 rtc_timeout_get(u64 hart)
 {
 	return __mtimecmp[hart];
 }
 
-void rtc_timeout_set(uint64_t hart, uint64_t time)
+void rtc_timeout_set(u64 hart, u64 time)
 {
 	__mtimecmp[hart] = time;
 }

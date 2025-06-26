@@ -53,7 +53,7 @@ link_args = [
     '-T' + platdir / 'linker.ld',
 ]
 
-machine_header = files('include/machine.h')
+machine_header = 'machine.h'
 
 subdir('brc')
 

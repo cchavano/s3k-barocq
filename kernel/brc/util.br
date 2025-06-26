@@ -21,15 +21,11 @@ defn cap_mk_memory(bgn: u64, end: u64, rwx: u64) : Types::cap_t =
     (bgn - (tag << Config::MAX_BLOCK_SIZE))
     >> Config::MIN_BLOCK_SIZE
   in
-  let mrk =
-    (bgn - (tag << Config::MAX_BLOCK_SIZE))
-    >> Config::MIN_BLOCK_SIZE
-  in
   let end =
     (end - (tag << Config::MAX_BLOCK_SIZE))
     >> Config::MIN_BLOCK_SIZE
   in
-  Cap::mk_memory(rwx, false as u64, tag, bgn, mrk, end)
+  Cap::mk_memory(rwx, false as u64, tag, bgn, bgn, end)
 
 defn cap_mk_pmp(addr: u64, rwx: u64) : Types::cap_t =
   Cap::mk_pmp(rwx, false as u64, 0UL, addr)

@@ -27,21 +27,22 @@ test_sources = files(
     # '../src/cap/pmp.c',
     # '../src/cap/table.c',
     '../src/cap/util.c',
-    '../src/exception.c',
-    '../src/interrupt.c',
+    # '../src/exception.c',
+    # '../src/interrupt.c',
     '../src/kprint.c',
     '../src/kstate.c',
     '../src/proc.c',
     '../src/sched.c',
-    '../src/syscall.c',
+    # '../src/syscall.c',
     'main.c',
     'utils.c',
+    '../../lib/src/s3k.c'
 ) + test_runner + libkernel_c
 
 s3k_test = executable(
     's3k_test',
     sources: test_sources,
-    include_directories: include_directories,
+    include_directories: include_directories('../../lib/include', '../include'),
     c_args: [
         '-include',
         'config.h',
