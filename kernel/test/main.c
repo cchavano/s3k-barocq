@@ -3,11 +3,11 @@
 #include "machine.h"
 #include "proc.h"
 #include "rtc.h"
+#include "s3k/types.h"
+#include "s3k/util.h"
 #include "sched.h"
 #include "types.h"
 #include "unity.h"
-#include "s3k/types.h"
-#include "s3k/util.h"
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
@@ -395,8 +395,8 @@ void test_Syscall_cap_derive_memory_invalid_tripple(void)
 	int dst2 = 7; // Another destination capability index
 	int dst3 = 8; // Another destination capability index
 	s3k_cap_t cap1 = s3k_mk_memory(0x80020000, 0x80040000, MEM_RW);
-	s3k_cap_t cap2 = s3k_mk_pmp(Util_pmp_napot_encode(0x80040000, 0x10000),
-				     MEM_RWX);
+	s3k_cap_t cap2
+	    = s3k_mk_pmp(Util_pmp_napot_encode(0x80040000, 0x10000), MEM_RWX);
 	s3k_cap_t cap3 = s3k_mk_memory(0x80040000, 0x80080000, MEM_RW);
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
 	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
@@ -1256,7 +1256,8 @@ void test_Syscall_sock_send_success1(void)
 
 	ks.next_pid = client;
 	u64 msg[4] = {0x2, 0x4, 0x8, 0x10};
-	Syscall_sock_send(&ks, client, dst2, 0, 0, msg[0], msg[1], msg[2], msg[3]);
+	Syscall_sock_send(&ks, client, dst2, 0, 0, msg[0], msg[1], msg[2],
+			  msg[3]);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[client]->t0);
 
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[server]->state);
@@ -1303,7 +1304,8 @@ void test_Syscall_sock_send_success2(void)
 
 	ks.next_pid = client;
 	u64 msg[4] = {0x2, 0x4, 0x8, 0x10};
-	Syscall_sock_send(&ks, client, dst2, 0, 0, msg[0], msg[1], msg[2], msg[3]);
+	Syscall_sock_send(&ks, client, dst2, 0, 0, msg[0], msg[1], msg[2],
+			  msg[3]);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[client]->t0);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[client]->state);
 
@@ -1352,7 +1354,8 @@ void test_Syscall_sock_send_success3(void)
 	u64 msg[4] = {0x2, 0x4, 0x8, 0x10};
 	ks.next_pid = client;
 	ks.ptable[client]->state = Proc_PSF_BUSY;
-	Syscall_sock_send(&ks, client, dst2, dst2, true, msg[0], msg[1], msg[2], msg[3]);
+	Syscall_sock_send(&ks, client, dst2, dst2, true, msg[0], msg[1], msg[2],
+			  msg[3]);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[client]->t0);
 
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);

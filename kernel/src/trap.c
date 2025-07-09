@@ -1,8 +1,9 @@
+#include "kprint.h"
+#include "rtc.h"
+
 #include <libkernel.h>
 #include <sched.h>
 #include <trap.h>
-#include "rtc.h"
-#include "kprint.h"
 
 extern kstate_t ks;
 
@@ -21,7 +22,7 @@ proc_t *trap_handler(proc_t *proc, u64 mcause, u64 mtval)
 	// If the next process is Proc_NULL, fetch the next process to run.
 	while (ks.next_pid == Proc_NULL)
 		Sched_fetch(&ks);
-	
+
 	// Prepare the next process to run.
 	proc_t *next_proc = proc_get(ks.next_pid);
 	proc_pmp_sync(next_proc);

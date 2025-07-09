@@ -27,7 +27,6 @@ test_sources = files(
     '../src/kstate.c',
     '../src/proc.c',
     '../src/sched.c',
-    '../src/machine.c',
     'main.c',
     'utils.c',
     '../../lib/src/s3k.c'

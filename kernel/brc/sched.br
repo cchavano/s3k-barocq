@@ -13,11 +13,11 @@ defn get_length(ks: kstate, slot: u64) : u64 =
   ks.tslots[slot] & 0xFFUL
 
 defn fetch(ks: kstate) : kstate =
-  let slot = Machine::time_read(ks.mc) / Config::S3K_SLOT_LEN() in
+  let slot = Machine::time_read(ks.mc) / Config::S3K_SLOT_LEN in
   let lslot = slot % Config::S3K_SLOT_CNT in
   let pid = get_pid(ks, lslot) in
   let length = get_length(ks, lslot) in
-  let timeout = (slot + length) * Config::S3K_SLOT_LEN() in
+  let timeout = (slot + length) * Config::S3K_SLOT_LEN in
   if length > 0UL then
     let ks = Ptable::acquire(ks, pid) in
     if Vreg::read(ks, Vreg::V0) as bool then
