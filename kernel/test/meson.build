@@ -20,20 +20,14 @@ gen_test_runner = unity_proj.get_variable('gen_test_runner')
 test_runner = gen_test_runner.process('main.c')
 
 test_sources = files(
-    # '../src/cap/ipc.c',
-    # '../src/cap/monitor.c',
     '../src/cap/ops.c',
     '../src/cap/ops.c',
-    # '../src/cap/pmp.c',
-    # '../src/cap/table.c',
     '../src/cap/util.c',
-    # '../src/exception.c',
-    # '../src/interrupt.c',
     '../src/kprint.c',
     '../src/kstate.c',
     '../src/proc.c',
     '../src/sched.c',
-    # '../src/syscall.c',
+    '../src/machine.c',
     'main.c',
     'utils.c',
     '../../lib/src/s3k.c'
