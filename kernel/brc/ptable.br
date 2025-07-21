@@ -165,11 +165,15 @@ defn pmp_avail(ks: kstate, pid: pid_t, slot: pmp_slot_t) : bool =
   Proc::pmp_avail(ks.ptable[pid], slot)
 
 defn pmp_load(ks: kstate, pid: pid_t, slot: pmp_slot_t, rwx: pmp_slot_t, addr: napot_t) : kstate =
-  let proc = Proc::pmp_load(ks.ptable[pid], slot, rwx, addr) in
-  let ptable = ks.ptable[pid] <- proc in
+  let ptable = ks.ptable in
+  let proc = ptable[pid] in
+  let proc = Proc::pmp_load(proc, slot, rwx, addr) in
+  let ptable = ptable[pid] <- proc in
   ks.ptable <- ptable
 
 defn pmp_unload(ks: kstate, pid: pid_t, slot: pmp_slot_t) : kstate =
-  let proc = Proc::pmp_unload(ks.ptable[pid], slot) in
-  let ptable = ks.ptable[pid] <- proc in
+  let ptable = ks.ptable in
+  let proc = ptable[pid] in
+  let proc = Proc::pmp_unload(proc, slot) in
+  let ptable = ptable[pid] <- proc in
   ks.ptable <- ptable
