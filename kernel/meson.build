@@ -2,7 +2,7 @@ project(
     's3k',
     'c',
     version: '0.1',
-    meson_version: '>= 1.4.1',
+    meson_version: '>= 1.1',
     default_options: [
         'buildtype=debug',
         'warning_level=2',
