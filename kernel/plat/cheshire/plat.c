@@ -4,7 +4,7 @@
 #include "macro.h"
 #include "proc.h"
 #include "types.h"
-#include "uart/ns16550a.h"
+#include "uart/ti16750.h"
 
 extern char __uart[];
 
@@ -18,7 +18,7 @@ void kernel_init(void)
 	    Util_cap_mk_pmp(Util_pmp_napot_encode(0x80010000, 0x10000),
 			    MEM_RWX),
 	    Util_cap_mk_memory(0x80010000, 0x80100000, MEM_RWX),
-	    Util_cap_mk_memory(0x10000000, 0x10001000, MEM_RW),
+	    Util_cap_mk_memory(0x03002000, 0x03004000, MEM_RW),
 	    Util_cap_mk_time(0, S3K_SLOT_CNT),
 	    Util_cap_mk_monitor(0, S3K_PROC_CNT),
 	    Util_cap_mk_channel(0, S3K_CHAN_CNT),
@@ -33,5 +33,5 @@ void kernel_init(void)
 
 void kputc(char c)
 {
-	uart_ns16550a_putchar(c, __uart);
+	uart_ti16750_putchar(c, __uart);
 }

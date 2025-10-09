@@ -43,6 +43,8 @@ c_args = [
     platdir / 'config.h',
     '-include',
     's3k_conf.h',
+	'-flto',
+    '-fstack-usage',
 ]
 
 link_args = [
@@ -50,6 +52,8 @@ link_args = [
     '-nostdlib',
     '-T',
     platdir / 'linker.ld',
+	'-flto',
+    '-fstack-usage',
 ]
 
 compiler = meson.get_compiler('c')
