@@ -2,6 +2,7 @@ module Ptable
 
 import Types
 
+#static #inline
 defn proc_reg_read(ks: kstate, pid: pid_t, reg: reg_t) : word_t =
   let proc = ks.ptable[pid] in
   match reg with
@@ -43,6 +44,7 @@ defn proc_reg_read(ks: kstate, pid: pid_t, reg: reg_t) : word_t =
   | REG_ESP => proc.esp
   end
 
+#static #inline
 defn proc_reg_write(ks: kstate, pid: pid_t, reg: reg_t, val: word_t) : kstate =
   let ptable = ks.ptable in
   let proc = ptable[pid] in
