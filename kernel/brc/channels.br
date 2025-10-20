@@ -2,6 +2,8 @@ module Channels
 
 import Types
 
+[#static]
+
 defn server_set(ks: kstate, chan_idx: u64, srv: pid_t) : kstate =
   let channels = ks.channels in
   let chan = channels[chan_idx] in

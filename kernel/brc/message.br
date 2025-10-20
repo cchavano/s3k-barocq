@@ -2,6 +2,7 @@ module Message
 
 import Types
 
+#static
 defn set(ks: kstate, send_cap: bool, buf_idx: u64, data0: u64, data1: u64, data2: u64, data3: u64) : kstate =
   let msg = ks.msg in
   let msg = msg.send_cap <- send_cap in

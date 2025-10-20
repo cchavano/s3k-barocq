@@ -2,6 +2,8 @@ module Monitor
 
 import Types
 
+[#static]
+
 defn check(ks: kstate, midx: u64, pid: pid_t, check_suspended: bool) : Error::err_t =
   let mon = ks.ctable[midx] in
   let mon_type = Cap::get_type(mon) in

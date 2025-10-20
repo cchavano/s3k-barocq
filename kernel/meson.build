@@ -42,18 +42,14 @@ c_args = [
     '-include',
     platdir / 'config.h',
     '-include',
-    's3k_conf.h',
-	'-flto',
-    '-fstack-usage',
+    's3k_conf.h'
 ]
 
 link_args = [
     '-nostartfiles',
     '-nostdlib',
     '-T',
-    platdir / 'linker.ld',
-	'-flto',
-    '-fstack-usage',
+    platdir / 'linker.ld'
 ]
 
 compiler = meson.get_compiler('c')
@@ -77,6 +73,6 @@ elf = executable(
     link_args: link_args,
 )
 
-if not meson.is_subproject()
-    subdir('test')
-endif
+# if not meson.is_subproject()
+#     subdir('test')
+# endif

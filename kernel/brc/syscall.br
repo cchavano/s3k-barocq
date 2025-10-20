@@ -2,37 +2,7 @@ module Syscall
 
 import Types
 
-(* Syscall identifiers *)
-
-(* defn CALL_GET_INFO : u64 = 0UL
-defn CALL_REG_READ : u64 = 1UL
-defn CALL_REG_WRITE : u64 = 2UL
-defn CALL_SYNC : u64 = 3UL
-defn CALL_SLEEP : u64 = 4UL
-
-defn CALL_CAP_READ : u64 = 5UL
-defn CALL_CAP_MOVE : u64 = 6UL
-defn CALL_CAP_DELETE : u64 = 7UL
-defn CALL_CAP_DERIVE : u64 = 8UL
-defn CALL_CAP_REVOKE : u64 = 9UL
-
-defn CALL_PMP_LOAD : u64 = 10UL
-defn CALL_PMP_UNLOAD : u64 = 11UL
-
-defn CALL_MON_SUSPEND : u64 = 12UL
-defn CALL_MON_RESUME : u64 = 13UL
-defn CALL_MON_STATE_GET : u64 = 14UL
-defn CALL_MON_YIELD : u64 = 15UL
-defn CALL_MON_REG_READ : u64 = 16UL
-defn CALL_MON_REG_WRITE : u64 = 17UL
-defn CALL_MON_CAP_READ : u64 = 18UL
-defn CALL_MON_CAP_MOVE : u64 = 19UL
-defn CALL_MON_PMP_LOAD : u64 = 20UL
-defn CALL_MON_PMP_UNLOAD : u64 = 21UL
-
-defn CALL_SOCK_SEND : u64 = 22UL
-defn CALL_SOCK_RECV : u64 = 23UL
-defn CALL_SOCK_SENDRECV : u64 = 24UL *)
+[#static]
 
 type syscall =
   | CALL_GET_INFO

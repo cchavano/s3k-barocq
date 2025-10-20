@@ -2,6 +2,8 @@ module Exception
 
 import Types
 
+[#static]
+
 defn exc_ILLEGAL_INSTRUCTION : u64 = 0x2UL
 
 defn instr_MRET : u64 = 0x30200073UL

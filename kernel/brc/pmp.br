@@ -19,6 +19,7 @@ defn load(ks: kstate, cidx: u64, slot: pmp_slot_t) : kstate =
     let ks = Ctable::set_cap(ks, cidx, cap2) in
     ks.errcode <- Error::SUCCESS
 
+#static
 defn unload(ks: kstate, cidx: u64) : kstate =
   let pid = Cap_ops::cap_pid(cidx) in
   let cap = ks.ctable[cidx] in

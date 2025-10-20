@@ -2,6 +2,8 @@ module Proc
 
 import Types
 
+[#static]
+
 defn psf_BUSY : u64 = 1UL
 defn psf_BLOCKED : u64 = 2UL
 defn psf_SUSPENDED : u64 = 4UL
@@ -29,6 +31,7 @@ defn resume(proc: proc_t) : proc_t =
   in
   proc.state <- proc.state & (~psf_SUSPENDED)
 
+#export
 defn release(proc: proc_t) : proc_t =
   proc.state <- proc.state & (~psf_BUSY)
 

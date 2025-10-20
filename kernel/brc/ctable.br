@@ -2,6 +2,8 @@ module Ctable
 
 import Types
 
+[#static]
+
 defn is_empty_cap(ks: kstate, cidx: u64) : bool =
   Cap::get_type(ks.ctable[cidx]) == Cap::CAPTY_NONE
 
@@ -35,6 +37,7 @@ defn delete(ks: kstate, cidx: u64) : kstate =
   let ks = set_next(ks, ks.cprev[cidx], ks.cnext[cidx]) in
   set_prev(ks, ks.cnext[cidx], ks.cprev[cidx])
 
+#export
 defn insert(ks: kstate, cidx: u64, cap: cap_t, previdx: u64) : kstate =
   let ks = set_prev(ks, cidx, previdx) in
   let ks = set_next(ks, cidx, ks.cnext[previdx]) in

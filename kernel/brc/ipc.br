@@ -2,6 +2,8 @@ module Ipc
 
 import Types
 
+[#static]
+
 defn ipc_YIELD : u64 = 1UL
 defn ipc_NOYIELD : u64 = 0UL
 defn ipc_SCAP : u64 = 2UL
@@ -212,7 +214,7 @@ defn cap_sock_sendrecv(ks: kstate, sock_idx: u64) : kstate =
   else
     call(ks, sock_idx)
 
-defn cap_sock_clear(ks: kstate, sock_idx: u64, pid: pid_t) : kstate =
+(* defn cap_sock_clear(ks: kstate, sock_idx: u64, pid: pid_t) : kstate =
   let sock = ks.ctable[sock_idx] in
   let chan_idx = Cap::socket_get_chan(sock) in 
   if Cap::socket_get_tag(sock) == 0UL then
@@ -222,4 +224,4 @@ defn cap_sock_clear(ks: kstate, sock_idx: u64, pid: pid_t) : kstate =
   else if ks.channels[chan_idx].client == pid then
     Channels::client_set(ks, chan_idx, Proc::pid_NULL)
   else
-    ks
+    ks *)

@@ -2,9 +2,12 @@ module Cap_ops
 
 import Types
 
+[#static]
+
 defn cap_pid(cidx: u64) : pid_t =
   cidx / Config::s3k_CAP_CNT
 
+#export
 defn cap_idx_from_pid(pid: pid_t, idx: u64) : u64 =
   pid * Config::s3k_CAP_CNT + idx
 
@@ -14,6 +17,7 @@ defn delete_memory(ks: kstate, cidx: u64) : kstate =
   let ks = Ctable::delete(ks, cidx) in
   ks.errcode <- Error::SUCCESS
 
+#export
 defn revoke_memory(ks: kstate, parent: u64) : kstate =
   let pcap = ks.ctable[parent] in
   let child = ks.cnext[parent] in
@@ -96,6 +100,7 @@ defn delete_pmp(ks: kstate, cidx: u64) : kstate =
     let ks = Ctable::delete(ks, cidx) in
     ks.errcode <- Error::SUCCESS
 
+#export
 defn revoke_pmp(ks: kstate, parent: u64) : kstate =
   ks.errcode <- Error::SUCCESS
 
@@ -110,6 +115,7 @@ defn delete_time(ks: kstate, cidx: u64) : kstate =
   let ks = Ctable::delete(ks, cidx) in
   ks.errcode <- Error::SUCCESS
 
+#export
 defn revoke_time(ks: kstate, parent: u64)  : kstate =
   let pcap = ks.ctable[parent] in
   let child = ks.cnext[parent] in
@@ -166,6 +172,7 @@ defn derive_time(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
 defn delete_monitor(ks: kstate, cidx: u64) : kstate =
   Ctable::delete(ks, cidx)
 
+#export
 defn revoke_monitor(ks: kstate, parent: u64) : kstate =
   let pcap = ks.ctable[parent] in
   let child = ks.cnext[parent] in
@@ -199,6 +206,7 @@ defn derive_monitor(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
     ks.errcode <- Error::INVALID_DERIVATION
 
 (* Channel capability *)
+
 defn delete_channel(ks: kstate, cidx: u64) : kstate =
   Ctable::delete(ks, cidx)
 
@@ -224,6 +232,7 @@ defn derive_channel(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
   else
     ks.errcode <- Error::INVALID_DERIVATION
 
+#export
 defn revoke_channel(ks: kstate, parent: u64) : kstate =
   let pcap = ks.ctable[parent] in
   let child = ks.cnext[parent] in
@@ -249,6 +258,7 @@ defn revoke_channel(ks: kstate, parent: u64) : kstate =
     ks.errcode <- Error::SUCCESS
 
 (* Socket capability *)
+
 defn delete_socket(ks: kstate, cidx: u64) : kstate =
   Ctable::delete(ks, cidx)
 
@@ -266,6 +276,7 @@ defn derive_socket(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
   else
     ks.errcode <- Error::INVALID_DERIVATION
 
+#export
 defn revoke_socket(ks: kstate, parent: u64) : kstate =
   ks.errcode <- Error::SUCCESS
 
