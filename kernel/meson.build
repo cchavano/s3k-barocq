@@ -21,10 +21,8 @@ endif
 sources = files(
     platdir / 'plat.c',
     'src/cap/ops.c',
-    'src/cap/util.c',
     'src/csr.c',
     'src/head.S',
-    'src/kprint.c',
     'src/kstate.c',
     'src/proc.c',
     'src/rtc.c',
@@ -44,6 +42,11 @@ c_args = [
     '-include',
     's3k_conf.h'
 ]
+
+if get_option('debug') == true
+    sources += files('src/kprint.c', 'src/cap/util.c')
+    c_args += ['-DNDEBUG']
+endif
 
 link_args = [
     '-nostartfiles',

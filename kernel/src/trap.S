@@ -110,11 +110,15 @@ trap_resume:
 
 __hang:
 	// Hang forever.
+	#ifdef NDEBUG
 	la 	a0, my_string
 	call	kputs
+	#endif
 	j 	__hang
 
 .section .data
 
+#ifdef NDEBUG
 my_string:
 	.string "Hang!\n"
+#endif

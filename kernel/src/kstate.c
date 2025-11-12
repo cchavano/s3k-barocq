@@ -34,6 +34,10 @@ static struct Types_message _msg;
 
 void kstate_init(const cap_t init_caps[], size_t size)
 {
+#ifdef NDEBUG
+	kputs("# Kernel init");
+#endif
+
 	// Setup the kernel state
 	ks.cnext = _cnext;
 	ks.cprev = _cprev;
@@ -97,6 +101,8 @@ void kstate_init(const cap_t init_caps[], size_t size)
 				     Cap_time_get_mrk(cap),
 				     Cap_time_get_upp(cap));
 		}
+#ifdef NDEBUG
 		kprintf("# init_caps[%d]: %C\n", i, cap);
+#endif
 	}
 }

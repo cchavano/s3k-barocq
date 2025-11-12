@@ -12,8 +12,6 @@ extern kstate_t ks;
 
 void kernel_init(void)
 {
-	kputs("# Kernel init");
-
 	cap_t init_caps[] = {
 	    Util_cap_mk_pmp(Util_pmp_napot_encode(0x80010000, 0x10000),
 			    MEM_RWX),
