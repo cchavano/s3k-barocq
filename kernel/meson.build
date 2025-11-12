@@ -45,7 +45,6 @@ c_args = [
 
 if get_option('debug') == true
     sources += files('src/kprint.c', 'src/cap/util.c')
-    c_args += ['-DNDEBUG']
 endif
 
 link_args = [
