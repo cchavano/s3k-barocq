@@ -32,10 +32,6 @@ sources = files(
     'src/trap.c',
 )
 
-if get_option('debug') == true
-    sources += files('src/cap/util.c', 'src/kprint.c')
-endif
-
 c_args = [
     '-ffreestanding',
     '-Wno-unused-parameter',
@@ -48,6 +44,13 @@ c_args = [
 ]
 
 link_args = ['-nostartfiles', '-nostdlib', '-T', platdir / 'linker.ld']
+
+if get_option('debug') == true
+    sources += files('src/cap/util.c', 'src/kprint.c')
+else
+    c_args += ['-flto']
+    link_args += ['-flto']
+endif
 
 compiler = meson.get_compiler('c')
 
