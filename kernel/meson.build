@@ -70,6 +70,15 @@ elf = executable(
     link_args: link_args,
 )
 
+objdump = find_program('riscv64-unknown-elf-objdump')
+da = custom_target(
+    'da',
+    command: [objdump, '-d', elf.full_path()],
+    capture: true,
+    depends: [elf],
+    output: ['s3k.da'],
+)
+
 # if not meson.is_subproject()
 #     subdir('test')
 # endif
