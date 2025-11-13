@@ -19,7 +19,7 @@ plat_ld = meson.current_source_dir() / 'plat' / plat + '.ld'
 
 elf = executable(
     'app0.elf',
-    sources: files(plat_c, 'head.S', 'main.c'),
+    sources: files('head.S', 'main.c', plat_c),
     c_args: ['-ffreestanding', '-include', plat_h],
     link_args: ['-nostdlib', '-T', plat_ld],
     link_depends: [plat_ld],
