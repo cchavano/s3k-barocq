@@ -56,7 +56,7 @@ defn proc_reg_write(ks: kstate, pid: pid_t, reg: reg_t, val: word_t) : kstate =
   let proc =
     match reg with
       case REG_PC => proc.pc <- val
-      case REG_RA => proc.sp <- val
+      case REG_RA => proc.ra <- val
       case REG_SP => proc.sp <- val
       case REG_GP => proc.gp <- val
       case REG_TP => proc.tp <- val
