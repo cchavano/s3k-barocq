@@ -99,20 +99,6 @@ defn proc_reg_write(ks: kstate, pid: pid_t, reg: reg_t, val: word_t) : kstate =
 defn proc_reg_write_noinline(ks: kstate, pid: pid_t, reg: reg_t, val: word_t) : kstate =
   proc_reg_write(ks, pid, reg, val)
 
-(* defn proc_ecause_set(ks: kstate, pid: pid_t, val: u64) : kstate =
-  let ptable = ks.ptable in
-  let proc = ptable[pid] in
-  let proc = proc.ecause <- val in
-  let ptable = ptable[pid] <- proc in
-  ks.ptable <- ptable
-
-defn proc_eval_set(ks: kstate, pid: pid_t, val: u64) : kstate =
-  let ptable = ks.ptable in
-  let proc = ptable[pid] in
-  let proc = proc.eval <- val in
-  let ptable = ptable[pid] <- proc in
-  ks.ptable <- ptable *)
-
 defn proc_state_set(ks: kstate, pid: pid_t, val: u64) : kstate =
   let ptable = ks.ptable in
   let proc = ptable[pid] in

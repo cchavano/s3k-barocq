@@ -2,8 +2,6 @@
 
 #include "sched.h"
 
-#include "csr.h"
-#include "kprint.h"
 #include "libkernel.h"
 #include "rtc.h"
 
