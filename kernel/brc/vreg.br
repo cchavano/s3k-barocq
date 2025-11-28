@@ -2,7 +2,7 @@ module Vreg
 
 import Types
 
-[#static]
+@all_static
 
 defn vR0 : u64 = 0UL
 defn vR1 : u64 = 1UL

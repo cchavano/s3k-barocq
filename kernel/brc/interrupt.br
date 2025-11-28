@@ -2,8 +2,8 @@ module Interrupt
 
 import Types
 
-[#static]
+@all_static
 
 defn handler(ks: kstate, pid: pid_t) : kstate =
   let ks = Ptable::release(ks, pid) in
-  ks.next_pid <- Proc::pid_NULL
+  ks.next_pid <- Proc::pid_null

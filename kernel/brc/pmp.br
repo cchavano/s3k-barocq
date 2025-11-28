@@ -4,34 +4,34 @@ import Types
 
 defn load(ks: kstate, cidx: u64, slot: pmp_slot_t) : kstate =
   let pid = Cap_ops::cap_pid(cidx) in
-  let cap = ks.ctable[cidx] in
+  let cap = Ctable::get_cap(ks, cidx) in
   let cap_type = Cap::get_type(cap) in
-  if cap_type == Cap::CAPTY_NONE then
-    ks.errcode <- Error::EMPTY
-  else if (cap_type != Cap::CAPTY_PMP) || Cap::pmp_get_used(cap) then
-    ks.errcode <- Error::INVALID_PMP
+  if cap_type == Cap::Capty_none then
+    ks.errcode <- Error::Empty
+  else if (cap_type != Cap::Capty_pmp) || Cap::pmp_get_used(cap) then
+    ks.errcode <- Error::Invalid_pmp
   else if !(Ptable::pmp_avail(ks, pid, slot)) then
-    ks.errcode <- Error::DST_OCCUPIED
+    ks.errcode <- Error::Dst_occupied
   else
     let ks = Ptable::pmp_load(ks, pid, slot, Cap::pmp_get_rwx(cap), Cap::pmp_get_addr(cap)) in
     let cap1 = Cap::pmp_set_slot(cap, slot) in
     let cap2 = Cap::pmp_set_used(cap1, true) in
     let ks = Ctable::set_cap(ks, cidx, cap2) in
-    ks.errcode <- Error::SUCCESS
+    ks.errcode <- Error::Success
 
-#static
+@static
 defn unload(ks: kstate, cidx: u64) : kstate =
   let pid = Cap_ops::cap_pid(cidx) in
-  let cap = ks.ctable[cidx] in
+  let cap = Ctable::get_cap(ks, cidx) in
   let cap_type = Cap::get_type(cap) in
-  if cap_type == Cap::CAPTY_NONE then
-    ks.errcode <- Error::EMPTY
-  else if (cap_type != Cap::CAPTY_PMP) || !(Cap::pmp_get_used(cap)) then
-    ks.errcode <- Error::INVALID_PMP
+  if cap_type == Cap::Capty_none then
+    ks.errcode <- Error::Empty
+  else if (cap_type != Cap::Capty_pmp) || !(Cap::pmp_get_used(cap)) then
+    ks.errcode <- Error::Invalid_pmp
   else
     let ks = Ptable::pmp_unload(ks, pid, Cap::pmp_get_slot(cap)) in
     let cap = Cap::pmp_set_slot(cap, 0UL) in
     let cap = Cap::pmp_set_used(cap, false) in
     let ks = Ctable::set_cap(ks, pid, cap) in
-    ks.errcode <- Error::SUCCESS
+    ks.errcode <- Error::Success
   

@@ -2,55 +2,55 @@ module Syscall
 
 import Types
 
-[#static]
+@all_static
 
-type syscall = [
-  CALL_GET_INFO,
-  CALL_REG_READ,
-  CALL_REG_WRITE,
-  CALL_SYNC,
-  CALL_SLEEP,
-  CALL_CAP_READ,
-  CALL_CAP_MOVE,
-  CALL_CAP_DELETE,
-  CALL_CAP_DERIVE,
-  CALL_CAP_REVOKE,
-  CALL_PMP_LOAD,
-  CALL_PMP_UNLOAD,
-  CALL_MON_SUSPEND,
-  CALL_MON_RESUME,
-  CALL_MON_STATE_GET,
-  CALL_MON_YIELD,
-  CALL_MON_REG_READ,
-  CALL_MON_REG_WRITE,
-  CALL_MON_CAP_READ,
-  CALL_MON_CAP_MOVE,
-  CALL_MON_PMP_LOAD,
-  CALL_MON_PMP_UNLOAD,
-  CALL_SOCK_SEND,
-  CALL_SOCK_RECV,
-  CALL_SOCK_SENDRECV,
-]
+enum syscall {
+  Call_get_info,
+  Call_reg_read,
+  Call_reg_write,
+  Call_sync,
+  Call_sleep,
+  Call_cap_read,
+  Call_cap_move,
+  Call_cap_delete,
+  Call_cap_derive,
+  Call_cap_revoke,
+  Call_pmp_load,
+  Call_pmp_unload,
+  Call_mon_suspend,
+  Call_mon_resume,
+  Call_mon_state_get,
+  Call_mon_yield,
+  Call_mon_reg_read,
+  Call_mon_reg_write,
+  Call_mon_cap_read,
+  Call_mon_cap_move,
+  Call_mon_pmp_load,
+  Call_mon_pmp_unload,
+  Call_sock_send,
+  Call_sock_recv,
+  Call_sock_sendrecv,
+}
 
 (* Helper functions *)
 
 defn valid_index(idx: u64) : bool =
-  idx < Config::s3k_CAP_CNT
+  idx < Config::s3k_cap_cnt
 
 defn valid_slot(slot: pmp_slot_t) : bool =
-  slot < Config::s3k_PMP_CNT
+  slot < Config::s3k_pmp_cnt
 
 defn valid_pid(pid: pid_t) : bool =
-  pid < Config::s3k_PROC_CNT
+  pid < Config::s3k_proc_cnt
 
 defn valid_reg(reg: reg_t) : bool =
-  (reg as u64) < Proc::reg_COUNT
+  (reg as u64) < Proc::reg_count
 
 defn set_proc_err(ks: kstate, pid: pid_t, err: Error::err_t) : kstate =
-  Ptable::proc_reg_write(ks, pid, REG_T0, err as word_t)
+  Ptable::proc_reg_write(ks, pid, Reg_t0, err as word_t)
 
 defn set_proc_retval(ks: kstate, pid: pid_t, val: word_t) : kstate =
-  Ptable::proc_reg_write(ks, pid, REG_A0, val)
+  Ptable::proc_reg_write(ks, pid, Reg_a0, val)
 
 (* Syscalls *)
 
@@ -64,35 +64,35 @@ defn get_info(ks: kstate, pid: pid_t, info: u64) : kstate =
     else 0UL
   in
   let ks = set_proc_retval(ks, pid, val) in
-  set_proc_err(ks, pid, Error::SUCCESS)
+  set_proc_err(ks, pid, Error::Success)
 
 defn reg_read(ks: kstate, pid: pid_t, reg: reg_t) : kstate =
   if !valid_reg(reg) then
-    set_proc_err(ks, pid, Error::INVALID_REGISTER)
+    set_proc_err(ks, pid, Error::Invalid_register)
   else
     let val = Ptable::proc_reg_read_noinline(ks, pid, reg) in
     let ks = set_proc_retval(ks, pid, val) in
-    set_proc_err(ks, pid, Error::SUCCESS)
+    set_proc_err(ks, pid, Error::Success)
 
 defn reg_write(ks: kstate, pid: pid_t, reg: reg_t, val: word_t) : kstate =
   if !valid_reg(reg) then
-    set_proc_err(ks, pid, Error::INVALID_REGISTER)
+    set_proc_err(ks, pid, Error::Invalid_register)
   else
     let ks = Ptable::proc_reg_write_noinline(ks, pid, reg, val) in
-    set_proc_err(ks, pid, Error::SUCCESS)
+    set_proc_err(ks, pid, Error::Success)
 
 defn sync(ks: kstate, pid: pid_t) : kstate =
-  let ks = ks.next_pid <- Proc::pid_NULL in
+  let ks = ks.next_pid <- Proc::pid_null in
   Ptable::proc_timeout_set(ks, pid, 0UL)
 
 defn sleep(ks: kstate, pid: pid_t, time: u64) : kstate =
-  let ks = ks.next_pid <- Proc::pid_NULL in
+  let ks = ks.next_pid <- Proc::pid_null in
   if time != 0UL then Ptable::proc_timeout_set(ks, pid, time)
   else ks
 
 defn cap_read(ks: kstate, pid: pid_t, idx: u64) : kstate =
   if !valid_index(idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else
     let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
     let ks = Cap_ops::read(ks, cidx) in
@@ -101,7 +101,7 @@ defn cap_read(ks: kstate, pid: pid_t, idx: u64) : kstate =
 
 defn cap_move(ks: kstate, pid: pid_t, src_idx: u64, dst_idx: u64) : kstate =
   if !(valid_index(src_idx) && valid_index(dst_idx)) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else
     let s_idx = Cap_ops::cap_idx_from_pid(pid, src_idx) in
     let d_idx = Cap_ops::cap_idx_from_pid(pid, dst_idx) in
@@ -110,7 +110,7 @@ defn cap_move(ks: kstate, pid: pid_t, src_idx: u64, dst_idx: u64) : kstate =
 
 defn cap_delete(ks: kstate, pid: pid_t, idx: u64) : kstate =
   if !valid_index(idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else
     let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
     let ks = Cap_ops::delete(ks, cidx) in
@@ -118,9 +118,9 @@ defn cap_delete(ks: kstate, pid: pid_t, idx: u64) : kstate =
   
 defn cap_derive(ks: kstate, pid: pid_t, src_idx: u64, dst_idx: u64, raw: cap_t) : kstate =
   if !(valid_index(src_idx) && valid_index(dst_idx)) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !Cap::is_valid(raw) then
-     set_proc_err(ks, pid, Error::INVALID_DERIVATION)
+     set_proc_err(ks, pid, Error::Invalid_derivation)
   else
       let s_idx = Cap_ops::cap_idx_from_pid(pid, src_idx) in
       let d_idx = Cap_ops::cap_idx_from_pid(pid, dst_idx) in
@@ -129,7 +129,7 @@ defn cap_derive(ks: kstate, pid: pid_t, src_idx: u64, dst_idx: u64, raw: cap_t) 
 
 defn cap_revoke(ks: kstate, pid: pid_t, idx: u64) : kstate =
   if !valid_index(idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else
     let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
     let ks = Cap_ops::revoke(ks, cidx) in
@@ -145,7 +145,7 @@ defn pmp_load(ks: kstate, pid: pid_t, idx: u64, slot: pmp_slot_t) : kstate =
 
 defn pmp_unload(ks: kstate, pid: pid_t, idx: u64) : kstate =
   if !valid_index(idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else
     let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
     let ks = Pmp::unload(ks, cidx) in
@@ -153,9 +153,9 @@ defn pmp_unload(ks: kstate, pid: pid_t, idx: u64) : kstate =
 
 defn mon_suspend(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate =
   if !valid_index(mon_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_pid(mon_pid) then
-    set_proc_err(ks, pid, Error::INVALID_PID)
+    set_proc_err(ks, pid, Error::Invalid_pid)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let ks = Monitor::cap_suspend(ks, m_idx, mon_pid) in
@@ -163,9 +163,9 @@ defn mon_suspend(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate 
 
 defn mon_resume(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate =
   if !valid_index(mon_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_index(mon_pid) then
-    set_proc_err(ks, pid, Error::INVALID_PID)
+    set_proc_err(ks, pid, Error::Invalid_pid)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let ks = Monitor::cap_resume(ks, m_idx, mon_pid) in
@@ -173,9 +173,9 @@ defn mon_resume(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate =
 
 defn mon_state_get(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate =
   if !valid_index(mon_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_pid(mon_pid) then
-    set_proc_err(ks, pid, Error::INVALID_PID)
+    set_proc_err(ks, pid, Error::Invalid_pid)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let ks = Monitor::cap_state_get(ks, m_idx, mon_pid) in
@@ -185,10 +185,10 @@ defn mon_state_get(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstat
 defn mon_yield(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate =
   if !valid_index(mon_idx) then
     let ks = Vreg::write(ks, 0UL, pid) in
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_pid(mon_pid) then
     let ks = Vreg::write(ks, 0UL, pid) in
-    set_proc_err(ks, pid, Error::INVALID_PID)
+    set_proc_err(ks, pid, Error::Invalid_pid)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let ks = Monitor::cap_yield(ks, m_idx, mon_pid) in
@@ -196,9 +196,9 @@ defn mon_yield(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate =
 
 defn mon_reg_read(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, reg: reg_t) : kstate =
   if !valid_index(mon_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_pid(mon_pid) then
-    set_proc_err(ks, pid, Error::INVALID_PID)
+    set_proc_err(ks, pid, Error::Invalid_pid)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let ks = Monitor::cap_reg_read(ks, m_idx, mon_pid, reg) in
@@ -207,9 +207,9 @@ defn mon_reg_read(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, reg: reg
 
 defn mon_reg_write(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, reg: reg_t, val: word_t) : kstate =
   if !valid_index(mon_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_pid(mon_pid) then
-    set_proc_err(ks, pid, Error::INVALID_PID)
+    set_proc_err(ks, pid, Error::Invalid_pid)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let ks = Monitor::cap_reg_write(ks, m_idx, mon_pid, reg, val) in
@@ -217,9 +217,9 @@ defn mon_reg_write(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, reg: re
 
 defn mon_cap_read(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, r_idx: u64) : kstate =
   if !valid_index(mon_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_pid(mon_pid) then
-    set_proc_err(ks, pid, Error::INVALID_PID)
+    set_proc_err(ks, pid, Error::Invalid_pid)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let ks = Monitor::cap_read(ks, m_idx, r_idx) in
@@ -228,15 +228,15 @@ defn mon_cap_read(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, r_idx: u
 
 defn mon_cap_move(ks: kstate, pid: pid_t, mon_idx: u64, src_pid: pid_t, src_idx: u64, dst_pid: pid_t, dst_idx: u64) : kstate =
   if !valid_index(mon_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_pid(src_pid) then
-    set_proc_err(ks, pid, Error::INVALID_PID)
+    set_proc_err(ks, pid, Error::Invalid_pid)
   else if !valid_index(src_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_pid(dst_pid) then
-    set_proc_err(ks, pid, Error::INVALID_PID)
+    set_proc_err(ks, pid, Error::Invalid_pid)
   else if !valid_index(dst_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let s_idx = Cap_ops::cap_idx_from_pid(src_pid, src_idx) in
@@ -246,13 +246,13 @@ defn mon_cap_move(ks: kstate, pid: pid_t, mon_idx: u64, src_pid: pid_t, src_idx:
 
 defn mon_pmp_load(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, pmp_idx: u64, slot: pmp_slot_t) : kstate =
   if !valid_index(mon_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_pid(mon_pid) then
-    set_proc_err(ks, pid, Error::INVALID_PID)
+    set_proc_err(ks, pid, Error::Invalid_pid)
   else if !valid_index(pmp_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_slot(slot) then
-    set_proc_err(ks, pid, Error::INVALID_SLOT)
+    set_proc_err(ks, pid, Error::Invalid_slot)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let p_idx = Cap_ops::cap_idx_from_pid(mon_pid, pmp_idx) in
@@ -261,11 +261,11 @@ defn mon_pmp_load(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, pmp_idx:
 
 defn mon_pmp_unload(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, pmp_idx: u64) : kstate =
   if !valid_index(mon_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_pid(mon_pid) then
-    set_proc_err(ks, pid, Error::INVALID_PID)
+    set_proc_err(ks, pid, Error::Invalid_pid)
   else if !valid_index(pmp_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let p_idx = Cap_ops::cap_idx_from_pid(mon_pid, pmp_idx) in
@@ -275,9 +275,9 @@ defn mon_pmp_unload(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, pmp_id
 defn sock_send(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64, send_cap: bool,
                data0: u64, data1: u64, data2: u64, data3: u64) : kstate =
   if !valid_index(sock_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_index(cap_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else
     let sock_idx = Cap_ops::cap_idx_from_pid(pid, sock_idx) in
     let buf_idx = Cap_ops::cap_idx_from_pid(pid, cap_idx) in
@@ -287,9 +287,9 @@ defn sock_send(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64, send_cap: bo
 
 defn sock_recv(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64) : kstate =
   if !valid_index(sock_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_index(cap_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else
     let sock_idx = Cap_ops::cap_idx_from_pid(pid, sock_idx) in
     let buf_idx = Cap_ops::cap_idx_from_pid(pid, cap_idx) in
@@ -299,9 +299,9 @@ defn sock_recv(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64) : kstate =
 defn sock_sendrecv(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64, send_cap: bool, 
                    data0: u64, data1: u64, data2: u64, data3: u64) : kstate =
   if !valid_index(sock_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else if !valid_index(cap_idx) then
-    set_proc_err(ks, pid, Error::INVALID_INDEX)
+    set_proc_err(ks, pid, Error::Invalid_index)
   else
     let sock_idx = Cap_ops::cap_idx_from_pid(pid, sock_idx) in
     let buf_idx = Cap_ops::cap_idx_from_pid(pid, cap_idx) in
@@ -312,150 +312,150 @@ defn sock_sendrecv(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64, send_cap
 (* Handler entry point *)
 
 defn handler(ks: kstate, pid: pid_t) : kstate =
-  let call = Ptable::proc_reg_read(ks, pid, REG_T0) in
+  let call = Ptable::proc_reg_read(ks, pid, Reg_t0) in
   if call >= 25UL then
-    let ks = set_proc_err(ks, pid, Error::INVALID_SYSCALL) in
+    let ks = set_proc_err(ks, pid, Error::Invalid_syscall) in
     Vreg::write(ks, Vreg::vR0, pid)
   else
-    let pc = Ptable::proc_reg_read(ks, pid, REG_PC) in
-    let ks = Ptable::proc_reg_write(ks, pid, REG_PC, pc + 4UL) in
+    let pc = Ptable::proc_reg_read(ks, pid, Reg_pc) in
+    let ks = Ptable::proc_reg_write(ks, pid, Reg_pc, pc + 4UL) in
     match (call as syscall) with
-      case CALL_GET_INFO =>
-        let info = Ptable::proc_reg_read(ks, pid, REG_A0) in
+      Call_get_info =>
+        let info = Ptable::proc_reg_read(ks, pid, Reg_a0) in
         let ks = get_info(ks, pid, info) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_REG_READ =>
-        let reg = Ptable::proc_reg_read(ks, pid, REG_A0) as reg_t in
+      Call_reg_read =>
+        let reg = Ptable::proc_reg_read(ks, pid, Reg_a0) as reg_t in
         let ks = reg_read(ks, pid, reg) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_REG_WRITE =>
-        let reg = Ptable::proc_reg_read(ks, pid, REG_A0) as reg_t in
-        let val = Ptable::proc_reg_read(ks, pid, REG_A1) in
+      Call_reg_write =>
+        let reg = Ptable::proc_reg_read(ks, pid, Reg_a0) as reg_t in
+        let val = Ptable::proc_reg_read(ks, pid, Reg_a1) in
         let ks = reg_write(ks, pid, reg, val) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_SYNC =>
+      Call_sync =>
         let ks = sync(ks, pid) in
-        Vreg::write(ks, Vreg::vR0, Proc::pid_NULL)
-      case CALL_SLEEP =>
-        let time = Ptable::proc_reg_read(ks, pid, REG_A0) in
+        Vreg::write(ks, Vreg::vR0, Proc::pid_null)
+      Call_sleep =>
+        let time = Ptable::proc_reg_read(ks, pid, Reg_a0) in
         let ks = sleep(ks, pid, time) in
-        Vreg::write(ks, Vreg::vR0, Proc::pid_NULL)
-      case CALL_CAP_READ =>
-        let idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
+        Vreg::write(ks, Vreg::vR0, Proc::pid_null)
+      Call_cap_read =>
+        let idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
         let ks = cap_read(ks, pid, idx) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_CAP_MOVE =>
-        let src_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let dst_idx = Ptable::proc_reg_read(ks, pid, REG_A1) in
+      Call_cap_move =>
+        let src_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let dst_idx = Ptable::proc_reg_read(ks, pid, Reg_a1) in
         let ks = cap_move(ks, pid, src_idx, dst_idx) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_CAP_DELETE =>
-        let idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
+      Call_cap_delete =>
+        let idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
         let ks = cap_delete(ks, pid, idx) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_CAP_DERIVE =>
-        let src_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let dst_idx = Ptable::proc_reg_read(ks, pid, REG_A1) in
-        let cap_raw = Ptable::proc_reg_read(ks, pid, REG_A2) in
+      Call_cap_derive =>
+        let src_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let dst_idx = Ptable::proc_reg_read(ks, pid, Reg_a1) in
+        let cap_raw = Ptable::proc_reg_read(ks, pid, Reg_a2) in
         let ks = cap_derive(ks, pid, src_idx, dst_idx, cap_raw) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_CAP_REVOKE =>
-        let idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
+      Call_cap_revoke =>
+        let idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
         let ks = cap_revoke(ks, pid, idx) in
-        let t0 = Ptable::proc_reg_read(ks, pid, REG_T0) in
+        let t0 = Ptable::proc_reg_read(ks, pid, Reg_t0) in
         let rpid =
-          if (t0 as Error::err_t) == Error::PREEMPTED then Proc::pid_NULL
+          if (t0 as Error::err_t) == Error::Preempted then Proc::pid_null
           else pid
         in
         Vreg::write(ks, Vreg::vR0, rpid)
-      case CALL_PMP_LOAD =>
-        let idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let slot = Ptable::proc_reg_read(ks, pid, REG_A1) in
+      Call_pmp_load =>
+        let idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let slot = Ptable::proc_reg_read(ks, pid, Reg_a1) in
         let ks = pmp_load(ks, pid, idx, slot) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_PMP_UNLOAD =>
-        let idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
+      Call_pmp_unload =>
+        let idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
         let ks = pmp_unload(ks, pid, idx) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_MON_SUSPEND =>
-        let mon_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let mon_pid = Ptable::proc_reg_read(ks, pid, REG_A1) in
+      Call_mon_suspend =>
+        let mon_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let mon_pid = Ptable::proc_reg_read(ks, pid, Reg_a1) in
         let ks = mon_suspend(ks, pid, mon_idx, mon_pid) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_MON_RESUME =>
-        let mon_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let mon_pid = Ptable::proc_reg_read(ks, pid, REG_A1) in
+      Call_mon_resume =>
+        let mon_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let mon_pid = Ptable::proc_reg_read(ks, pid, Reg_a1) in
         let ks = mon_resume(ks, pid, mon_idx, mon_pid) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_MON_STATE_GET =>
-        let mon_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let mon_pid = Ptable::proc_reg_read(ks, pid, REG_A1) in
+      Call_mon_state_get =>
+        let mon_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let mon_pid = Ptable::proc_reg_read(ks, pid, Reg_a1) in
         let ks = mon_state_get(ks, pid, mon_idx, mon_pid) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_MON_YIELD =>
-        let mon_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let mon_pid = Ptable::proc_reg_read(ks, pid, REG_A1) in
+      Call_mon_yield =>
+        let mon_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let mon_pid = Ptable::proc_reg_read(ks, pid, Reg_a1) in
         mon_yield(ks, pid, mon_idx, mon_pid)
-      case CALL_MON_REG_READ =>
-        let mon_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let mon_pid = Ptable::proc_reg_read(ks, pid, REG_A1) in
-        let reg = Ptable::proc_reg_read(ks, pid, REG_A2) as reg_t in
+      Call_mon_reg_read =>
+        let mon_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let mon_pid = Ptable::proc_reg_read(ks, pid, Reg_a1) in
+        let reg = Ptable::proc_reg_read(ks, pid, Reg_a2) as reg_t in
         let ks = mon_reg_read(ks, pid, mon_idx, mon_pid, reg) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_MON_REG_WRITE =>
-        let mon_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let mon_pid = Ptable::proc_reg_read(ks, pid, REG_A1) in
-        let reg = Ptable::proc_reg_read(ks, pid, REG_A2) as reg_t in
-        let val = Ptable::proc_reg_read(ks, pid, REG_A3) in
+      Call_mon_reg_write =>
+        let mon_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let mon_pid = Ptable::proc_reg_read(ks, pid, Reg_a1) in
+        let reg = Ptable::proc_reg_read(ks, pid, Reg_a2) as reg_t in
+        let val = Ptable::proc_reg_read(ks, pid, Reg_a3) in
         let ks = mon_reg_write(ks, pid, mon_idx, mon_pid, reg, val) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_MON_CAP_READ =>
-        let mon_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let mon_pid = Ptable::proc_reg_read(ks, pid, REG_A1) in
-        let cap_idx = Ptable::proc_reg_read(ks, pid, REG_A2) in
+      Call_mon_cap_read =>
+        let mon_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let mon_pid = Ptable::proc_reg_read(ks, pid, Reg_a1) in
+        let cap_idx = Ptable::proc_reg_read(ks, pid, Reg_a2) in
         let ks = mon_cap_read(ks, pid, mon_idx, mon_pid, cap_idx) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_MON_CAP_MOVE =>
-        let mon_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let src_pid = Ptable::proc_reg_read(ks, pid, REG_A1) in
-        let src_idx = Ptable::proc_reg_read(ks, pid, REG_A2) in
-        let dst_pid = Ptable::proc_reg_read(ks, pid, REG_A3) in
-        let dst_idx = Ptable::proc_reg_read(ks, pid, REG_A4) in
+      Call_mon_cap_move =>
+        let mon_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let src_pid = Ptable::proc_reg_read(ks, pid, Reg_a1) in
+        let src_idx = Ptable::proc_reg_read(ks, pid, Reg_a2) in
+        let dst_pid = Ptable::proc_reg_read(ks, pid, Reg_a3) in
+        let dst_idx = Ptable::proc_reg_read(ks, pid, Reg_a4) in
         let ks = mon_cap_move(ks, pid, mon_idx, src_pid, src_idx, dst_pid, dst_idx) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_MON_PMP_LOAD =>
-        let mon_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let mon_pid = Ptable::proc_reg_read(ks, pid, REG_A1) in
-        let idx = Ptable::proc_reg_read(ks, pid, REG_A2) in
-        let slot = Ptable::proc_reg_read(ks, pid, REG_A3) in
+      Call_mon_pmp_load =>
+        let mon_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let mon_pid = Ptable::proc_reg_read(ks, pid, Reg_a1) in
+        let idx = Ptable::proc_reg_read(ks, pid, Reg_a2) in
+        let slot = Ptable::proc_reg_read(ks, pid, Reg_a3) in
         let ks = mon_pmp_load(ks, pid, mon_idx, mon_pid, idx, slot) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_MON_PMP_UNLOAD =>
-        let mon_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let mon_pid = Ptable::proc_reg_read(ks, pid, REG_A1) in
-        let idx = Ptable::proc_reg_read(ks, pid, REG_A2) in
+      Call_mon_pmp_unload =>
+        let mon_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let mon_pid = Ptable::proc_reg_read(ks, pid, Reg_a1) in
+        let idx = Ptable::proc_reg_read(ks, pid, Reg_a2) in
         let ks = mon_pmp_unload(ks, pid, mon_idx, mon_pid, idx) in
         Vreg::write(ks, Vreg::vR0, pid)
-      case CALL_SOCK_SEND =>
-        let sock_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let cap_idx = Ptable::proc_reg_read(ks, pid, REG_A1) in
-        let send_cap = Ptable::proc_reg_read(ks, pid, REG_A2) in
-        let data0 = Ptable::proc_reg_read(ks, pid, REG_A3) in
-        let data1 = Ptable::proc_reg_read(ks, pid, REG_A4) in
-        let data2 = Ptable::proc_reg_read(ks, pid, REG_A5) in
-        let data3 = Ptable::proc_reg_read(ks, pid, REG_A6) in
+      Call_sock_send =>
+        let sock_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let cap_idx = Ptable::proc_reg_read(ks, pid, Reg_a1) in
+        let send_cap = Ptable::proc_reg_read(ks, pid, Reg_a2) in
+        let data0 = Ptable::proc_reg_read(ks, pid, Reg_a3) in
+        let data1 = Ptable::proc_reg_read(ks, pid, Reg_a4) in
+        let data2 = Ptable::proc_reg_read(ks, pid, Reg_a5) in
+        let data3 = Ptable::proc_reg_read(ks, pid, Reg_a6) in
         sock_send(ks, pid, sock_idx, cap_idx, send_cap as bool, data0, data1, data2, data3)
-      case CALL_SOCK_RECV =>
-        let sock_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let cap_idx = Ptable::proc_reg_read(ks, pid, REG_A1) in
+      Call_sock_recv =>
+        let sock_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let cap_idx = Ptable::proc_reg_read(ks, pid, Reg_a1) in
         sock_recv(ks, pid, sock_idx, cap_idx)
-      case CALL_SOCK_SENDRECV =>
-        let sock_idx = Ptable::proc_reg_read(ks, pid, REG_A0) in
-        let cap_idx = Ptable::proc_reg_read(ks, pid, REG_A1) in
-        let send_cap = Ptable::proc_reg_read(ks, pid, REG_A2) in
-        let data0 = Ptable::proc_reg_read(ks, pid, REG_A3) in
-        let data1 = Ptable::proc_reg_read(ks, pid, REG_A4) in
-        let data2 = Ptable::proc_reg_read(ks, pid, REG_A5) in
-        let data3 = Ptable::proc_reg_read(ks, pid, REG_A6) in
+      Call_sock_sendrecv =>
+        let sock_idx = Ptable::proc_reg_read(ks, pid, Reg_a0) in
+        let cap_idx = Ptable::proc_reg_read(ks, pid, Reg_a1) in
+        let send_cap = Ptable::proc_reg_read(ks, pid, Reg_a2) in
+        let data0 = Ptable::proc_reg_read(ks, pid, Reg_a3) in
+        let data1 = Ptable::proc_reg_read(ks, pid, Reg_a4) in
+        let data2 = Ptable::proc_reg_read(ks, pid, Reg_a5) in
+        let data3 = Ptable::proc_reg_read(ks, pid, Reg_a6) in
         sock_sendrecv(ks, pid, sock_idx, cap_idx, send_cap as bool, data0, data1, data2, data3)
     end

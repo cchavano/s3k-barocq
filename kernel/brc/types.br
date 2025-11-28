@@ -8,104 +8,106 @@ type napot_t = word_t
 
 type pid_t = word_t
 
-type idx_t = word_t
-
 type cap_t = u64
 
 type proc_state_t = u64
 
-type reg_t = [
-  REG_PC,
-  REG_RA,
-  REG_SP,
-  REG_GP,
-  REG_TP,
-  REG_T0,
-  REG_T1,
-  REG_T2,
-  REG_S0,
-  REG_S1,
-  REG_A0,
-  REG_A1,
-  REG_A2,
-  REG_A3, 
-  REG_A4,
-  REG_A5,
-  REG_A6,
-  REG_A7,
-  REG_S2,
-  REG_S3,
-  REG_S4,
-  REG_S5,
-  REG_S6,
-  REG_S7,
-  REG_S8,
-  REG_S9,
-  REG_S10,
-  REG_S11,
-  REG_T3,
-  REG_T4,
-  REG_T5,
-  REG_T6,
-  REG_TPC,
-  REG_TSP,
-  REG_EPC,
-  REG_ESP,
-]
+enum reg_t {
+  Reg_pc,
+  Reg_ra,
+  Reg_sp,
+  Reg_gp,
+  Reg_tp,
+  Reg_t0,
+  Reg_t1,
+  Reg_t2,
+  Reg_s0,
+  Reg_s1,
+  Reg_a0,
+  Reg_a1,
+  Reg_a2,
+  Reg_a3, 
+  Reg_a4,
+  Reg_a5,
+  Reg_a6,
+  Reg_a7,
+  Reg_s2,
+  Reg_s3,
+  Reg_s4,
+  Reg_s5,
+  Reg_s6,
+  Reg_s7,
+  Reg_s8,
+  Reg_s9,
+  Reg_s10,
+  Reg_s11,
+  Reg_t3,
+  Reg_t4,
+  Reg_t5,
+  Reg_t6,
+  Reg_tpc,
+  Reg_tsp,
+  Reg_epc,
+  Reg_esp,
+}
 
-type proc_t = {
-  state: proc_state_t;
+record proc_t {
+  state: proc_state_t,
   (* Registers ===== *)
-  pc: word_t; ra: word_t; sp: word_t; gp: word_t; tp: word_t;
-  t0: word_t; t1: word_t; t2: word_t; s0: word_t; s1: word_t;
-  a0: word_t; a1: word_t; a2: word_t; a3: word_t; a4: word_t;
-  a5: word_t; a6: word_t; a7: word_t;
-  s2: word_t; s3: word_t; s4: word_t; s5: word_t; s6: word_t;
-  s7: word_t; s8: word_t; s9: word_t;
-  s10: word_t; s11: word_t; t3: word_t; t4: word_t; t5: word_t; t6: word_t;
-  tpc: word_t; tsp: word_t; epc: word_t; esp: word_t;
-  ecause: word_t; eval: word_t;
-  servtime: word_t;
+  pc: word_t, ra: word_t, sp: word_t, gp: word_t, tp: word_t,
+  t0: word_t, t1: word_t, t2: word_t, s0: word_t, s1: word_t,
+  a0: word_t, a1: word_t, a2: word_t, a3: word_t, a4: word_t,
+  a5: word_t, a6: word_t, a7: word_t,
+  s2: word_t, s3: word_t, s4: word_t, s5: word_t, s6: word_t,
+  s7: word_t, s8: word_t, s9: word_t,
+  s10: word_t, s11: word_t, t3: word_t, t4: word_t, t5: word_t, t6: word_t,
+  tpc: word_t, tsp: word_t, epc: word_t, esp: word_t,
+  ecause: word_t, eval: word_t,
+  servtime: word_t,
   (* =============== *)
-  pmpcfg: u64;
-  pmpaddr: array u64;
-  pid: pid_t;
-  timeout: u64;
+  pmpcfg: u64,
+  pmpaddr: #[u64; Config::s3k_pmp_cnt],
+  pid: pid_t,
+  timeout: u64,
 }
 
-type channel = {
-  server: pid_t;
-  client: pid_t;
-  buf_idx: u64;
+record cte {
+  next: u64,
+  prev: u64,
+  cap: cap_t,
 }
 
-type message = {
-  send_cap : bool;
-  buf_idx : u64;
-  data0 : u64;
-  data1 : u64;
-  data2 : u64;
-  data3 : u64;
+record channel {
+  server: pid_t,
+  client: pid_t,
+  buf_idx: u64,
 }
 
-type kstate = {
+record message {
+  send_cap : bool,
+  buf_idx : u64,
+  data0 : u64,
+  data1 : u64,
+  data2 : u64,
+  data3 : u64,
+}
+
+record kstate {
   (* Capability table *)
-  cnext: array u64;
-  cprev: array u64;
-  ctable: array cap_t;
+  ctable: #[#cte; Config::s3k_proc_cnt * Config::s3k_cap_cnt],
   (* Scheduler data *)
-  tslots: array u64;
+  tslots: #[u64; Config::s3k_slot_cnt],
   (* Process table *)
-  ptable: array proc_t;
+  ptable: #[#proc_t; Config::s3k_slot_cnt],
   (* IPC channels *)
-  channels: array channel;
+  channels: #[#channel; Config::s3k_chan_cnt],
   (* Machine state *)
-  mc: Machine::state;
+  mc: Machine::state,
   (* IPC message *)
-  msg: message;
+  msg: #message,
   (* Return data *)
-  vregs: array u64; 
-  errcode: Error::err_t;
+  vregs: #[u64; 8UL], 
+  errcode: Error::err_t,
   (* Next process to run *)
-  next_pid: pid_t;
+  next_pid: pid_t,
 }

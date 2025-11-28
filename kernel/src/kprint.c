@@ -66,64 +66,64 @@ void _print_dec(unsigned long long x, bool neg)
 void _print_err(err_t e)
 {
 	switch (e) {
-	case Error_SUCCESS:
+	case Error_Success:
 		kprintf("SUCCESS");
 		break;
-	case Error_EMPTY:
-		kprintf("Error_EMPTY");
+	case Error_Empty:
+		kprintf("EMPTY");
 		break;
-	case Error_SRC_EMPTY:
-		kprintf("Error_SRC_EMPTY");
+	case Error_Src_empty:
+		kprintf("SRC_EMPTY");
 		break;
-	case Error_DST_OCCUPIED:
-		kprintf("Error_DIST_OCCUPIED");
+	case Error_Dst_occupied:
+		kprintf("DIST_OCCUPIED");
 		break;
-	case Error_INVALID_INDEX:
-		kprintf("Error_INVALID_INDEX");
+	case Error_Invalid_index:
+		kprintf("INVALID_INDEX");
 		break;
-	case Error_INVALID_DERIVATION:
-		kprintf("Error_INVALID_DERIVATION");
+	case Error_Invalid_derivation:
+		kprintf("INVALID_DERIVATION");
 		break;
-	case Error_INVALID_MONITOR:
-		kprintf("Error_INVALID_MONITOR");
+	case Error_Invalid_monitor:
+		kprintf("INVALID_MONITOR");
 		break;
-	case Error_INVALID_PID:
-		kprintf("Error_INVALID_PID");
+	case Error_Invalid_pid:
+		kprintf("INVALID_PID");
 		break;
-	case Error_INVALID_STATE:
-		kprintf("Error_INVALID_STATE");
+	case Error_Invalid_state:
+		kprintf("INVALID_STATE");
 		break;
-	case Error_INVALID_PMP:
-		kprintf("Error_INVALID_PMP");
+	case Error_Invalid_pmp:
+		kprintf("INVALID_PMP");
 		break;
-	case Error_INVALID_SLOT:
-		kprintf("Error_INVALID_SLOT");
+	case Error_Invalid_slot:
+		kprintf("INVALID_SLOT");
 		break;
-	case Error_INVALID_SOCKET:
-		kprintf("Error_INVALID_SOCKET");
+	case Error_Invalid_socket:
+		kprintf("INVALID_SOCKET");
 		break;
-	case Error_INVALID_SYSCALL:
-		kprintf("Error_INVALID_SYSCALL");
+	case Error_Invalid_syscall:
+		kprintf("INVALID_SYSCALL");
 		break;
-	case Error_INVALID_REGISTER:
-		kprintf("Error_INVALID_REGISTER");
+	case Error_Invalid_register:
+		kprintf("INVALID_REGISTER");
 		break;
-	case Error_INVALID_CAPABILITY:
-		kprintf("Error_INVALID_CAPABILITY");
+	case Error_Invalid_capability:
+		kprintf("INVALID_CAPABILITY");
 		break;
-	case Error_NO_RECEIVER:
-		kprintf("Error_NO_RECEIVER");
+	case Error_No_receiver:
+		kprintf("NO_RECEIVER");
 		break;
-	case Error_PREEMPTED:
-		kprintf("Error_PREEMPTED");
+	case Error_Preempted:
+		kprintf("PREEMPTED");
 		break;
-	case Error_TIMEOUT:
-		kprintf("Error_TIMEOUT");
+	case Error_Timeout:
+		kprintf("TIMEOUT");
 		break;
-	case Error_SUSPENDED:
-		kprintf("Error_SUSPENDED");
+	case Error_Suspended:
+		kprintf("SUSPENDED");
 		break;
-	case Error_CONTINUE:
+	case Error_Continue:
 		kprintf("CONTINUE");
 		break;
 	default:

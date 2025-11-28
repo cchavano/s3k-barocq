@@ -40,7 +40,7 @@ class Capability:
                 offset += self._sizes[field]
 
     def type(self):
-        return f"CAPTY_{self._name.upper()}"
+        return f"Capty_{self._name}"
 
     def name(self):
         return self._name
@@ -119,12 +119,12 @@ class Capability:
 # Open the file and load the file
 def main(capabilities):
     output = ["(* Capability types *)"]
-    output.append("type capty = [")
+    output.append("enum capty {")
     for cap in capabilities:
-        output.append(f"  CAPTY_{cap['name'].upper()},")
-    output.append("]")
+        output.append(f"  Capty_{cap['name']},")
+    output.append("}")
     output.append("\n(* Number of capability types (incl. null cap) *)")
-    output.append(f"defn capty_COUNT : u64 = {len(capabilities)}UL")
+    output.append(f"defn capty_count : u64 = {len(capabilities)}UL")
     output.append("\n(* Capability type *)")
     output.append(f"defn get_type(cap: cap_t) : capty = (cap & 0xfUL) as capty")
     for cap in capabilities:
@@ -152,24 +152,24 @@ import Types
 is_valid_cap ='''
 defn is_valid(cap: cap_t) : bool =
   match get_type(cap) with
-  \tcase CAPTY_TIME =>
+  \tCapty_time =>
       (time_get_low(cap) < time_get_upp(cap))
       && (time_get_low(cap) == time_get_mrk(cap))
-  \tcase CAPTY_MEMORY =>
+  \tCapty_memory =>
       !memory_get_lck(cap)
       && (memory_get_low(cap) < memory_get_upp(cap))
       && (memory_get_low(cap) == memory_get_mrk(cap))
-  \tcase CAPTY_PMP =>
+  \tCapty_pmp =>
       !pmp_get_used(cap) && (pmp_get_slot(cap) == 0UL)
-  \tcase CAPTY_MONITOR =>
+  \tCapty_monitor =>
       (monitor_get_low(cap) < monitor_get_upp(cap))
       && (monitor_get_low(cap) == monitor_get_mrk(cap))
-  \tcase CAPTY_CHANNEL =>
+  \tCapty_channel =>
       (channel_get_low(cap) < channel_get_upp(cap))
       && (channel_get_low(cap) == channel_get_mrk(cap))
-  \tcase CAPTY_SOCKET =>
+  \tCapty_socket =>
       (socket_get_mode(cap) == 0UL) || (socket_get_mode(cap) == 1UL)
-  \tcase _ => false
+  \t_ => false
   end'''
 
 if __name__ == "__main__":

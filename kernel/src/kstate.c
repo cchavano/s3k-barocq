@@ -7,30 +7,6 @@
 kstate_t ks;
 kstate_t *const Kernel_ks = &ks;
 
-// Capabilities
-#define TOTAL_CAP_CNT (S3K_PROC_CNT * S3K_CAP_CNT)
-static u64 _cnext[TOTAL_CAP_CNT];
-static u64 _cprev[TOTAL_CAP_CNT];
-static u64 _ctable[TOTAL_CAP_CNT];
-
-// Virtual registers
-static u64 _vregs[8];
-
-// Process table
-static u64 _pmpcfg[S3K_PROC_CNT];
-static u64 _pmpaddr[S3K_PROC_CNT][S3K_PMP_CNT];
-static struct Types_proc_t _procs[S3K_PROC_CNT];
-static struct Types_proc_t *_ptable[S3K_PROC_CNT];
-
-// Time slots
-static u64 _tslots[S3K_SLOT_CNT];
-
-// Channels
-static struct Types_channel _channels[S3K_CHAN_CNT];
-static struct Types_channel *_pchannels[S3K_CHAN_CNT];
-
-static struct Types_message _msg;
-
 void kstate_init(const cap_t init_caps[], size_t size)
 {
 #ifndef NDEBUG
@@ -38,21 +14,13 @@ void kstate_init(const cap_t init_caps[], size_t size)
 #endif
 
 	// Setup the kernel state
-	ks.cnext = _cnext;
-	ks.cprev = _cprev;
-	ks.ctable = _ctable;
-	ks.vregs = _vregs;
-	ks.ptable = _ptable;
-	ks.tslots = _tslots;
-	ks.channels = _pchannels;
-	ks.msg = &_msg;
-	ks.next_pid = Proc_pid_NULL; // Initialize next PID to NULL
+	ks.next_pid = Proc_pid_null; // Initialize next PID to NULL
 
 	// Zero the capability table
-	for (unsigned int i = 0; i < ARRAY_SIZE(_ctable); i++) {
-		ks.cnext[i] = 0;
-		ks.cprev[i] = 0;
-		ks.ctable[i] = 0;
+	for (unsigned int i = 0; i < ARRAY_SIZE(ks.ctable); i++) {
+		ks.ctable[i].next = 0;
+		ks.ctable[i].prev = 0;
+		ks.ctable[i].cap = 0;
 	}
 
 	// Zero the virtual registers
@@ -62,39 +30,35 @@ void kstate_init(const cap_t init_caps[], size_t size)
 	ks.errcode = 0;
 
 	// Zero and intialize the process table
-	for (unsigned int i = 0; i < ARRAY_SIZE(_ptable); i++) {
-		_ptable[i] = &_procs[i];
+	for (unsigned int i = 0; i < ARRAY_SIZE(ks.ptable); i++) {
 		for (unsigned int j = 0; j < S3K_PMP_CNT; j++) {
-			_pmpcfg[i] = 0;
-			_pmpaddr[i][j] = 0;
+			ks.ptable[i].pmpcfg = 0;
+			ks.ptable[i].pmpaddr[j] = 0;
 		}
-		_procs[i].pmpaddr = _pmpaddr[i];
-		_procs[i].pmpcfg = _pmpcfg[i];
-		ks.ptable[i]->state = Proc_psf_SUSPENDED;
-		ks.ptable[i]->pid = i;
+		ks.ptable[i].state = Proc_psf_suspended;
+		ks.ptable[i].pid = i;
 	}
 
 	// Zero the time slots
-	for (unsigned int i = 0; i < ARRAY_SIZE(_tslots); i++) {
+	for (unsigned int i = 0; i < ARRAY_SIZE(ks.tslots); i++) {
 		ks.tslots[i] = 0;
 	}
 
-	for (unsigned int i = 0; i < ARRAY_SIZE(_channels); i++) {
-		ks.channels[i] = &_channels[i];
-		ks.channels[i]->server = 0;
-		ks.channels[i]->client = 0;
-		ks.channels[i]->buf_idx = 0;
+	for (unsigned int i = 0; i < ARRAY_SIZE(ks.channels); i++) {
+		ks.channels[i].server = 0;
+		ks.channels[i].client = 0;
+		ks.channels[i].buf_idx = 0;
 	}
 
 	// Populate the capability table with initial capabilities
 	unsigned int prev = 0;
 	for (unsigned int i = 0; i < size; i++) {
 		cap_t cap = init_caps[i];
-		if (Cap_get_type(cap) == Cap_CAPTY_NONE)
+		if (Cap_get_type(cap) == Cap_Capty_none)
 			continue;
 		Ctable_insert(i, cap, prev);
 		prev = i;
-		if (Cap_get_type(cap) == Cap_CAPTY_TIME) {
+		if (Cap_get_type(cap) == Cap_Capty_time) {
 			// Update the time slots when inserting a time capability
 			Sched_update(0, Cap_time_get_upp(cap),
 				     Cap_time_get_mrk(cap),

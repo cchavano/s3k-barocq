@@ -2,24 +2,24 @@ module Exception
 
 import Types
 
-[#static]
+@all_static
 
-defn exc_ILLEGAL_INSTRUCTION : u64 = 0x2UL
+defn exc_illegal_instruction : u64 = 0x2UL
 
-defn instr_MRET : u64 = 0x30200073UL
-defn instr_SRET : u64 = 0x10200074UL
-defn instr_URET : u64 = 0x00200073UL
+defn instr_mret : u64 = 0x30200073UL
+defn instr_sret : u64 = 0x10200074UL
+defn instr_uret : u64 = 0x00200073UL
 
 defn delegate(ks: kstate, pid: pid_t, mcause: u64, mtval: u64) : kstate =
   let ptable = ks.ptable in
   let proc = ptable[pid] in
   let proc = { proc with
-    ecause <- mcause;
-    eval <- mtval;
-    epc <- proc.pc;
-    esp <- proc.sp;
-    pc <- proc.tpc;
-    sp <- proc.tsp;
+    ecause <- mcause,
+    eval <- mtval,
+    epc <- proc.pc,
+    esp <- proc.sp,
+    pc <- proc.tpc,
+    sp <- proc.tsp,
   } in
   let ptable = ptable[pid] <- proc in
   ks.ptable <- ptable
@@ -28,19 +28,19 @@ defn trap_return(ks: kstate, pid: pid_t) : kstate =
   let ptable = ks.ptable in
   let proc = ptable[pid] in
   let proc = { proc with
-    pc <- proc.epc;
-    sp <- proc.esp;
-    ecause <- 0UL;
-    epc <- 0UL;
-    esp <- 0UL;
+    pc <- proc.epc,
+    sp <- proc.esp,
+    ecause <- 0UL,
+    epc <- 0UL,
+    esp <- 0UL,
   } in
   let ptable = ptable[pid] <- proc in
   ks.ptable <- ptable
 
 defn handler(ks: kstate, pid: pid_t, mcause: u64, mtval: u64) : kstate =
   let ks = ks.next_pid <- pid in
-  if (mcause == exc_ILLEGAL_INSTRUCTION)
-      && ((mtval == instr_MRET) || (mtval == instr_SRET) || (mtval == instr_URET))
+  if (mcause == exc_illegal_instruction)
+      && ((mtval == instr_mret) || (mtval == instr_sret) || (mtval == instr_uret))
   then
     trap_return(ks, pid)
   else

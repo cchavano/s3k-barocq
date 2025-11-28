@@ -1,5 +1,6 @@
 #include "cap/ops.h"
 
+#include "libkernel.h"
 #include "preempt.h"
 
 typedef void (*revoke_handler)(u64);
@@ -16,18 +17,18 @@ static const revoke_handler revoke_handlers[CAPTY_COUNT] = {
 
 void Cap_ops_revoke(u64 parent)
 {
-	u64 pcap = Kernel_ks->ctable[parent];
+	u64 pcap = Kernel_ks->ctable[parent].cap;
 	u64 type = Cap_get_type(pcap);
-	if (type == Cap_CAPTY_NONE) {
-		Kernel_ks->errcode = Error_EMPTY;
+	if (type == Cap_Capty_none) {
+		Kernel_ks->errcode = Error_Empty;
 		return;
 	}
 	do {
 		revoke_handlers[type](parent);
-	} while (Kernel_ks->errcode == Error_CONTINUE && !preempt());
+	} while (Kernel_ks->errcode == Error_Continue && !preempt());
 
-	if (Kernel_ks->errcode == Error_CONTINUE) {
-		Kernel_ks->errcode = Error_PREEMPTED;
+	if (Kernel_ks->errcode == Error_Continue) {
+		Kernel_ks->errcode = Error_Preempted;
 	}
 	return;
 }

@@ -2,41 +2,41 @@ module Proc
 
 import Types
 
-[#static]
+@all_static
 
-defn psf_BUSY : u64 = 1UL
-defn psf_BLOCKED : u64 = 2UL
-defn psf_SUSPENDED : u64 = 4UL
+defn psf_busy : u64 = 1UL
+defn psf_blocked : u64 = 2UL
+defn psf_suspended : u64 = 4UL
 
-defn reg_COUNT : u64 = 32UL
+defn reg_count : u64 = 32UL
 
 (* Encodes an unexisting process. *)
-defn pid_NULL : pid_t = -1UL
+defn pid_null : pid_t = -1UL
 
 defn suspend(proc: proc_t) : proc_t =
   let prev = proc.state in
-  let proc = proc.state <- (proc.state | psf_SUSPENDED) in
-  if (prev & psf_BLOCKED) as bool then
-    let proc = proc.state <- psf_SUSPENDED in
-    proc.t0 <- (Error::SUSPENDED as u64)
+  let proc = proc.state <- (proc.state | psf_suspended) in
+  if (prev & psf_blocked) as bool then
+    let proc = proc.state <- psf_suspended in
+    proc.t0 <- (Error::Suspended as u64)
   else
     proc
 
 defn resume(proc: proc_t) : proc_t =
   let proc =
-    if proc.state == psf_SUSPENDED then
+    if proc.state == psf_suspended then
       proc.timeout <- 0UL
     else
       proc
   in
-  proc.state <- proc.state & (~psf_SUSPENDED)
+  proc.state <- proc.state & (~psf_suspended)
 
-#export
+@export
 defn release(proc: proc_t) : proc_t =
-  proc.state <- proc.state & (~psf_BUSY)
+  proc.state <- proc.state & (~psf_busy)
 
 defn is_suspended(proc: proc_t) : bool =
-  proc.state == psf_SUSPENDED
+  proc.state == psf_suspended
 
 defn pmp_avail(proc: proc_t, slot: pmp_slot_t) : bool =
   Util::pmpcfg_get(proc.pmpcfg, slot) == 0UL

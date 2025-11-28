@@ -1,28 +1,28 @@
 module Config
 
 (* RTC frequency *)
-defn clock_RTC_HZ : u64 = 1000000UL
+defn clock_rtc_hz : u64 = 1000000UL
 
 (* Number of processes *)
-defn s3k_PROC_CNT : u64 = 8UL
+defn s3k_proc_cnt : u64 = 8UL
 
 (* Number of capabilities per process *)
-defn s3k_CAP_CNT : u64 = 32UL
+defn s3k_cap_cnt : u64 = 32UL
 
 (* Number of channels *)
-defn s3k_CHAN_CNT : u64 = 8UL
+defn s3k_chan_cnt : u64 = 8UL
 
 (* Number of time slots *)
-defn s3k_SLOT_CNT : u64 = 32UL
+defn s3k_slot_cnt : u64 = 32UL
 
 (* Number of PMP slots *)
-defn s3k_PMP_CNT : u64 = 8UL
+defn s3k_pmp_cnt : u64 = 8UL
 
-defn s3k_SLOT_LEN : u64 =
-  clock_RTC_HZ / s3k_SLOT_CNT
+defn s3k_slot_len : u64 =
+  clock_rtc_hz / s3k_slot_cnt
 
 (* Min logarithmic size of a memory slice *)
-defn mem_MIN_BLOCK_SIZE : u64 = 12UL
+defn mem_min_block_size : u64 = 12UL
 
 (* Max logarithmic size of a memory slice *)
-defn mem_MAX_BLOCK_SIZE : u64 = 27UL
+defn mem_max_block_size : u64 = 27UL

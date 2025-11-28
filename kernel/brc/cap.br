@@ -3,29 +3,29 @@ module Cap
 import Types
 
 (* Capability types *)
-type capty = [
-  CAPTY_NONE,
-  CAPTY_TIME,
-  CAPTY_MEMORY,
-  CAPTY_PMP,
-  CAPTY_MONITOR,
-  CAPTY_CHANNEL,
-  CAPTY_SOCKET,
-]
+enum capty {
+  Capty_none,
+  Capty_time,
+  Capty_memory,
+  Capty_pmp,
+  Capty_monitor,
+  Capty_channel,
+  Capty_socket,
+}
 
 (* Number of capability types (incl. null cap) *)
-defn capty_COUNT : u64 = 7UL
+defn capty_count : u64 = 7UL
 
 (* Capability type *)
 defn get_type(cap: cap_t) : capty = (cap & 0xfUL) as capty
 
 (* none capability *)
 defn mk_none() : u64 =
-  (CAPTY_NONE as u64)
+  (Capty_none as u64)
 
 (* time capability *)
 defn mk_time(low: u64, mrk: u64, upp: u64) : u64 =
-  (CAPTY_TIME as u64) | upp << 48UL | mrk << 32UL | low << 16UL
+  (Capty_time as u64) | upp << 48UL | mrk << 32UL | low << 16UL
 defn time_get_low(cap: cap_t) : u64 =
   (cap >> 16UL) & 0xffffUL
 defn time_get_mrk(cap: cap_t) : u64 =
@@ -41,7 +41,7 @@ defn time_set_upp(cap: cap_t, v: u64) : u64 =
 
 (* memory capability *)
 defn mk_memory(rwx: u64, lck: u64, tag: u64, low: u64, mrk: u64, upp: u64) : u64 =
-  (CAPTY_MEMORY as u64) | upp << 48UL | mrk << 32UL | low << 16UL | tag << 8UL | lck << 7UL | rwx << 4UL
+  (Capty_memory as u64) | upp << 48UL | mrk << 32UL | low << 16UL | tag << 8UL | lck << 7UL | rwx << 4UL
 defn memory_get_rwx(cap: cap_t) : u64 =
   (cap >> 4UL) & 0x7UL
 defn memory_get_lck(cap: cap_t) : bool =
@@ -69,7 +69,7 @@ defn memory_set_upp(cap: cap_t, v: u64) : u64 =
 
 (* pmp capability *)
 defn mk_pmp(rwx: u64, used: u64, slot: u64, addr: u64) : u64 =
-  (CAPTY_PMP as u64) | addr << 16UL | slot << 8UL | used << 7UL | rwx << 4UL
+  (Capty_pmp as u64) | addr << 16UL | slot << 8UL | used << 7UL | rwx << 4UL
 defn pmp_get_rwx(cap: cap_t) : u64 =
   (cap >> 4UL) & 0x7UL
 defn pmp_get_used(cap: cap_t) : bool =
@@ -89,7 +89,7 @@ defn pmp_set_addr(cap: cap_t, v: u64) : u64 =
 
 (* monitor capability *)
 defn mk_monitor(low: u64, mrk: u64, upp: u64) : u64 =
-  (CAPTY_MONITOR as u64) | upp << 48UL | mrk << 32UL | low << 16UL
+  (Capty_monitor as u64) | upp << 48UL | mrk << 32UL | low << 16UL
 defn monitor_get_low(cap: cap_t) : u64 =
   (cap >> 16UL) & 0xffffUL
 defn monitor_get_mrk(cap: cap_t) : u64 =
@@ -105,7 +105,7 @@ defn monitor_set_upp(cap: cap_t, v: u64) : u64 =
 
 (* channel capability *)
 defn mk_channel(low: u64, mrk: u64, upp: u64) : u64 =
-  (CAPTY_CHANNEL as u64) | upp << 48UL | mrk << 32UL | low << 16UL
+  (Capty_channel as u64) | upp << 48UL | mrk << 32UL | low << 16UL
 defn channel_get_low(cap: cap_t) : u64 =
   (cap >> 16UL) & 0xffffUL
 defn channel_get_mrk(cap: cap_t) : u64 =
@@ -121,7 +121,7 @@ defn channel_set_upp(cap: cap_t, v: u64) : u64 =
 
 (* socket capability *)
 defn mk_socket(mode: u64, perm: u64, chan: u64, tag: u64) : u64 =
-  (CAPTY_SOCKET as u64) | tag << 32UL | chan << 16UL | perm << 8UL | mode << 4UL
+  (Capty_socket as u64) | tag << 32UL | chan << 16UL | perm << 8UL | mode << 4UL
 defn socket_get_mode(cap: cap_t) : u64 =
   (cap >> 4UL) & 0xfUL
 defn socket_get_perm(cap: cap_t) : u64 =
@@ -141,22 +141,22 @@ defn socket_set_tag(cap: cap_t, v: u64) : u64 =
 
 defn is_valid(cap: cap_t) : bool =
   match get_type(cap) with
-  	case CAPTY_TIME =>
+  	Capty_time =>
       (time_get_low(cap) < time_get_upp(cap))
       && (time_get_low(cap) == time_get_mrk(cap))
-  	case CAPTY_MEMORY =>
+  	Capty_memory =>
       !memory_get_lck(cap)
       && (memory_get_low(cap) < memory_get_upp(cap))
       && (memory_get_low(cap) == memory_get_mrk(cap))
-  	case CAPTY_PMP =>
+  	Capty_pmp =>
       !pmp_get_used(cap) && (pmp_get_slot(cap) == 0UL)
-  	case CAPTY_MONITOR =>
+  	Capty_monitor =>
       (monitor_get_low(cap) < monitor_get_upp(cap))
       && (monitor_get_low(cap) == monitor_get_mrk(cap))
-  	case CAPTY_CHANNEL =>
+  	Capty_channel =>
       (channel_get_low(cap) < channel_get_upp(cap))
       && (channel_get_low(cap) == channel_get_mrk(cap))
-  	case CAPTY_SOCKET =>
+  	Capty_socket =>
       (socket_get_mode(cap) == 0UL) || (socket_get_mode(cap) == 1UL)
-  	case _ => false
+  	_ => false
   end

@@ -6,20 +6,20 @@ decl delete : (@write kstate, u64, u64) -> kstate
 
 decl update : (@write kstate, u64, u64, u64, u64) -> kstate
 
-#static
+@static
 defn get_pid(ks: kstate, slot: u64) : u64 =
   (ks.tslots[slot] >> 8UL) & 0xFFUL
 
-#static
+@static
 defn get_length(ks: kstate, slot: u64) : u64 =
   ks.tslots[slot] & 0xFFUL
 
 defn fetch(ks: kstate) : kstate =
-  let slot = Machine::time_read(ks.mc) / Config::s3k_SLOT_LEN in
-  let lslot = slot % Config::s3k_SLOT_CNT in
+  let slot = Machine::time_read(ks.mc) / Config::s3k_slot_len in
+  let lslot = slot % Config::s3k_slot_cnt in
   let pid = get_pid(ks, lslot) in
   let length = get_length(ks, lslot) in
-  let timeout = (slot + length) * Config::s3k_SLOT_LEN in
+  let timeout = (slot + length) * Config::s3k_slot_len in
   if length > 0UL then
     let ks = Ptable::acquire(ks, pid) in
     if Vreg::read(ks, Vreg::vR0) as bool then

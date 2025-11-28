@@ -10,23 +10,23 @@ extern kstate_t ks;
 void proc_init(word_t payload)
 {
 	for (u64 i = 0; i < S3K_PROC_CNT; i++) {
-		ks.ptable[i]->pid = i;
-		ks.ptable[i]->state = Proc_psf_SUSPENDED;
+		ks.ptable[i].pid = i;
+		ks.ptable[i].state = Proc_psf_suspended;
 	}
-	ks.ptable[0]->state = 0;
-	ks.ptable[0]->pc = (word_t)payload;
+	ks.ptable[0].state = 0;
+	ks.ptable[0].pc = (word_t)payload;
 }
 
 proc_t *proc_get_opt(pid_t pid)
 {
-	return pid == Proc_pid_NULL ? NULL : ks.ptable[pid];
+	return pid == Proc_pid_null ? NULL : &ks.ptable[pid];
 }
 
 proc_t *proc_get(pid_t pid)
 {
 	KASSERT(pid < S3K_PROC_CNT);
-	KASSERT(ks.ptable[pid]->pid == pid);
-	return ks.ptable[pid];
+	KASSERT(ks.ptable[pid].pid == pid);
+	return &ks.ptable[pid];
 }
 
 proc_t *proc_pmp_sync(proc_t *proc)

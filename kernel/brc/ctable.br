@@ -2,45 +2,63 @@ module Ctable
 
 import Types
 
-[#static]
+@all_static
 
 defn is_empty_cap(ks: kstate, cidx: u64) : bool =
-  Cap::get_type(ks.ctable[cidx]) == Cap::CAPTY_NONE
+  Cap::get_type(ks.ctable[cidx].cap) == Cap::Capty_none
+
+@inline
+defn get_cap(ks: kstate, cidx: u64) : cap_t = 
+  ks.ctable[cidx].cap
+
+@inline
+defn get_next(ks: kstate, cidx: u64) : u64 =
+  ks.ctable[cidx].next
+
+@inline
+defn get_prev(ks: kstate, cidx: u64) : u64 =
+  ks.ctable[cidx].prev
 
 defn set_cap(ks: kstate, cidx: u64, cap: cap_t) : kstate =
   let ctable = ks.ctable in
-  let ctable = ctable[cidx] <- cap in
+  let cte = ctable[cidx] in
+  let cte = cte.cap <- cap in
+  let ctable = ctable[cidx] <- cte in
   ks.ctable <- ctable
 
 defn set_next(ks: kstate, cidx: u64, nextidx: u64) : kstate =
-  let cnext = ks.cnext in
-  let cnext = cnext[cidx] <- nextidx in
-  ks.cnext <- cnext
+  let ctable = ks.ctable in
+  let cte = ctable[cidx] in
+  let cte = cte.next <- nextidx in
+  let ctable = ctable[cidx] <- cte in
+  ks.ctable <- ctable
 
 defn set_prev(ks: kstate, cidx: u64, previdx: u64) : kstate =
-  let cprev = ks.cprev in
-  let cprev = cprev[cidx] <- previdx in
-  ks.cprev <- cprev
+  let ctable = ks.ctable in
+  let cte = ctable[cidx] in
+  let cte = cte.prev <- previdx in
+  let ctable = ctable[cidx] <- cte in
+  ks.ctable <- ctable
 
 defn move(ks: kstate, src: u64, dst: u64) : kstate =
   if src == dst then ks
   else
-    let ks = set_cap(ks, dst, ks.ctable[src]) in
+    let ks = set_cap(ks, dst, get_cap(ks, src)) in
     let ks = set_cap(ks, src, 0UL) in
-    let ks = set_prev(ks, dst, ks.cprev[src]) in
-    let ks = set_next(ks, dst, ks.cnext[src]) in
-    let ks = set_next(ks, ks.cprev[dst], dst) in
-    set_prev(ks, ks.cnext[dst], dst)
+    let ks = set_prev(ks, dst, get_prev(ks, src)) in
+    let ks = set_next(ks, dst, get_next(ks, src)) in
+    let ks = set_next(ks, get_prev(ks, dst), dst) in
+    set_prev(ks, get_next(ks, dst), dst)
 
 defn delete(ks: kstate, cidx: u64) : kstate =
   let ks = set_cap(ks, cidx, 0UL) in
-  let ks = set_next(ks, ks.cprev[cidx], ks.cnext[cidx]) in
-  set_prev(ks, ks.cnext[cidx], ks.cprev[cidx])
+  let ks = set_next(ks, get_prev(ks, cidx), get_next(ks, cidx)) in
+  set_prev(ks, get_next(ks, cidx), get_prev(ks, cidx))
 
-#export
+@export
 defn insert(ks: kstate, cidx: u64, cap: cap_t, previdx: u64) : kstate =
   let ks = set_prev(ks, cidx, previdx) in
-  let ks = set_next(ks, cidx, ks.cnext[previdx]) in
+  let ks = set_next(ks, cidx, get_next(ks, previdx)) in
   let ks = set_next(ks, previdx, cidx) in
-  let ks = set_prev(ks, ks.cnext[cidx], cidx) in
+  let ks = set_prev(ks, get_next(ks, cidx), cidx) in
   set_cap(ks, cidx, cap)
