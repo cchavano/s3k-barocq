@@ -2,11 +2,7 @@ module Machine
 
 import Types
 
-decl rtc_time_get : (@write machine) -> machine
-
-@static
-defn time_sync(ks: kstate) : kstate =
-  ks.mc <- rtc_time_get(ks.mc)
+decl time_sync : (@write kstate) -> kstate
 
 decl time_read : (@read machine) -> u64
 

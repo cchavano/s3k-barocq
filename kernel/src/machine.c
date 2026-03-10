@@ -4,9 +4,9 @@
 #include "libkernel.h"
 #include "rtc.h"
 
-machine_t *Machine_rtc_time_get(machine_t *mc)
+void Machine_time_sync()
 {
-	return mc;
+	return;
 }
 
 u64 Machine_time_read(machine_t *mc)
