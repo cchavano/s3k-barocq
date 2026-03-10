@@ -32,6 +32,7 @@ defn do_send_check(ks: kstate, is_server : bool, is_yield : bool, chan_idx: u64,
 
 defn do_send(ks: kstate, sender_pid: u64, sock_idx: u64) : kstate =
   let sock = Ctable::get_cap(ks, sock_idx) in
+  let ks = Machine::time_sync(ks) in
   let curr_time = Machine::time_read(ks.mc) in
   let timeout = Machine::timeout_read(ks.mc, Machine::csrr_mhartid(ks.mc)) in
   let chan_idx = Cap::socket_get_chan(sock) in

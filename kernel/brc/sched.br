@@ -15,6 +15,7 @@ defn get_length(ks: kstate, slot: u64) : u64 =
   ks.tslots[slot] & 0xFFUL
 
 defn fetch(ks: kstate) : kstate =
+  let ks = Machine::time_sync(ks) in
   let slot = Machine::time_read(ks.mc) / Config::s3k_slot_len in
   let lslot = slot % Config::s3k_slot_cnt in
   let pid = get_pid(ks, lslot) in

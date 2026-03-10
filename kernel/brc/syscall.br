@@ -57,7 +57,9 @@ defn set_proc_retval(ks: kstate, pid: pid_t, val: word_t) : kstate =
 defn get_info(ks: kstate, pid: pid_t, info: u64) : kstate =
   let val =
     if info == 0UL then pid
-    else if info == 1UL then Machine::time_read(ks.mc)
+    else if info == 1UL then
+      let ks = Machine::time_sync(ks) in
+      Machine::time_read(ks.mc)
     else if info == 2UL then
       let hartid = Machine::csrr_mhartid(ks.mc) in
       Machine::timeout_read(ks.mc, hartid)

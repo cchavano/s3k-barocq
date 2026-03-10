@@ -1,5 +1,5 @@
 #pragma once
 
-typedef struct Machine_state {
+typedef struct Types_machine {
 	int dummy;
-} mstate_t;
+} machine_t;

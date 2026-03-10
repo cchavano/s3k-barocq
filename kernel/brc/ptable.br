@@ -118,15 +118,17 @@ defn acquire(ks: kstate, pid: pid_t) : kstate =
   let desired = Proc::psf_busy in
   if (expected & (Proc::psf_busy | Proc::psf_suspended)) as bool then
     Vreg::write(ks, Vreg::vR0, false as u64)
-  else if Machine::time_read(ks.mc) < ks.ptable[pid].timeout then
-    Vreg::write(ks, Vreg::vR0, false as u64)
   else
-    let ptable = ks.ptable in
-    let proc = ptable[pid] in
-    let proc = proc.state <- desired in
-    let ptable = ptable[pid] <- proc in
-    let ks = ks.ptable <- ptable in
-    Vreg::write(ks, Vreg::vR0, true as u64)
+    let ks = Machine::time_sync(ks) in
+    if Machine::time_read(ks.mc) < ks.ptable[pid].timeout then
+      Vreg::write(ks, Vreg::vR0, false as u64)
+    else
+      let ptable = ks.ptable in
+      let proc = ptable[pid] in
+      let proc = proc.state <- desired in
+      let ptable = ptable[pid] <- proc in
+      let ks = ks.ptable <- ptable in
+      Vreg::write(ks, Vreg::vR0, true as u64)
 
 defn suspend(ks: kstate, pid: pid_t) : kstate =
   let ptable = ks.ptable in

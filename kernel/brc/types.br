@@ -92,6 +92,8 @@ record message {
   data3 : u64,
 }
 
+type machine of "struct"
+
 record kstate {
   (* Capability table *)
   ctable: #[#cte; Config::s3k_proc_cnt * Config::s3k_cap_cnt],
@@ -102,11 +104,12 @@ record kstate {
   (* IPC channels *)
   channels: #[#channel; Config::s3k_chan_cnt],
   (* Machine state *)
-  mc: Machine::state,
+  mc: machine,
   (* IPC message *)
   msg: #message,
   (* Return data *)
   vregs: #[u64; 8UL], 
+  (* Error code *)
   errcode: Error::err_t,
   (* Next process to run *)
   next_pid: pid_t,

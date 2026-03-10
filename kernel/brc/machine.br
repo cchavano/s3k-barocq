@@ -1,9 +1,15 @@
 module Machine
 
-type state of "struct"
+import Types
 
-decl time_read : (@read state) -> u64
+decl rtc_time_get : (@write machine) -> machine
 
-decl timeout_read : (@read state, u64) -> u64
+@static
+defn time_sync(ks: kstate) : kstate =
+  ks.mc <- rtc_time_get(ks.mc)
 
-decl csrr_mhartid : (@read state) -> u64
+decl time_read : (@read machine) -> u64
+
+decl timeout_read : (@read machine, u64) -> u64
+
+decl csrr_mhartid : (@read machine) -> u64
