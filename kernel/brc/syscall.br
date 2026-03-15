@@ -32,6 +32,12 @@ enum syscall {
   Call_sock_sendrecv,
 }
 
+enum kinfo {
+  Info_pid,
+  Info_time,
+  Info_timeout,
+}
+
 (* Helper functions *)
 
 defn valid_index(idx: u64) : bool =
@@ -55,15 +61,18 @@ defn set_proc_retval(ks: kstate, pid: pid_t, val: word_t) : kstate =
 (* Syscalls *)
 
 defn get_info(ks: kstate, pid: pid_t, info: u64) : kstate =
+  let ks = Machine::time_sync(ks) in
   let val =
-    if info == 0UL then pid
-    else if info == 1UL then
-      let ks = Machine::time_sync(ks) in
-      Machine::time_read(ks.mc)
-    else if info == 2UL then
-      let hartid = Machine::csrr_mhartid(ks.mc) in
-      Machine::timeout_read(ks.mc, hartid)
-    else 0UL
+    if info > 2UL then 0UL
+    else
+      match (info as kinfo) with
+        Info_pid => pid
+        Info_time =>
+          Machine::time_read(ks.mc)
+        Info_timeout =>
+          let hartid = Machine::csrr_mhartid(ks.mc) in
+          Machine::timeout_read(ks.mc, hartid)
+      end
   in
   let ks = set_proc_retval(ks, pid, val) in
   set_proc_err(ks, pid, Error::Success)
