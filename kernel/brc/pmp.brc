@@ -3,7 +3,7 @@ module Pmp
 import Types
 
 defn load(ks: kstate, cidx: u64, slot: pmp_slot_t) : kstate =
-  let pid = Cap_ops::cap_pid(cidx) in
+  let pid = CapOps::cap_pid(cidx) in
   let cap = Ctable::get_cap(ks, cidx) in
   let cap_type = Cap::get_type(cap) in
   if cap_type == Cap::Capty_none then
@@ -21,7 +21,7 @@ defn load(ks: kstate, cidx: u64, slot: pmp_slot_t) : kstate =
 
 @static
 defn unload(ks: kstate, cidx: u64) : kstate =
-  let pid = Cap_ops::cap_pid(cidx) in
+  let pid = CapOps::cap_pid(cidx) in
   let cap = Ctable::get_cap(ks, cidx) in
   let cap_type = Cap::get_type(cap) in
   if cap_type == Cap::Capty_none then

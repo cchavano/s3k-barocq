@@ -4,4 +4,4 @@
 
 #define CAPTY_COUNT 7
 
-void Cap_ops_revoke(u64 parent);
+void CapOps_revoke(u64 parent);

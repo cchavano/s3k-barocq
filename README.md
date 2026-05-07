@@ -12,7 +12,7 @@ Compiler toolchain is defined in `cross/*.ini`.
 Requirements
 ------------
 
-- The Barocq compiler
+- [The Barocq compiler](https://gitlab.inria.fr/cchavano/barocq)
 - [RISC-V GNU Toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain) 
   - We recommend that you clone the repository and build the toolchains as follows:
     ```
@@ -28,13 +28,9 @@ Requirements
 
 Build and Run
 -------------
+The following commands compile S3K and run the Hello world example in QEMU.
 
-For building and running the `hello` project with `meson` and `ninja`:
 ```bash
-# Setup the project in builddir
-meson setup builddir examples/hello --cross-file cross/gcc-rv64imac.ini
-# Compile the project
-ninja -C builddir
-# Run the project using QEMU
-ninja -C builddir qemu
+./setup hello
+ninja -C build qemu
 ```

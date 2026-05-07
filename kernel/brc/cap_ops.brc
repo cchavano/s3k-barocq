@@ -1,4 +1,4 @@
-module Cap_ops
+module CapOps
 
 import Types
 

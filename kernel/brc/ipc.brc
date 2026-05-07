@@ -50,7 +50,7 @@ defn do_send(ks: kstate, sender_pid: u64, sock_idx: u64) : kstate =
       let ks =
         if ks.msg.send_cap then
           let buf_idx = ks.channels[chan_idx].buf_idx in
-          let ks = Cap_ops::move(ks, ks.msg.buf_idx, buf_idx) in
+          let ks = CapOps::move(ks, ks.msg.buf_idx, buf_idx) in
           Ptable::proc_reg_write(ks, recv_pid, Reg_a1, Ctable::get_cap(ks, buf_idx))
         else
           Ptable::proc_reg_write(ks, recv_pid, Reg_a1, 0UL)

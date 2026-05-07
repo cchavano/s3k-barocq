@@ -7,15 +7,15 @@ typedef void (*revoke_handler)(u64);
 
 static const revoke_handler revoke_handlers[CAPTY_COUNT] = {
     NULL,
-    Cap_ops_revoke_time,
-    Cap_ops_revoke_memory,
-    Cap_ops_revoke_pmp,
-    Cap_ops_revoke_monitor,
-    Cap_ops_revoke_channel,
-    Cap_ops_revoke_socket,
+    CapOps_revoke_time,
+    CapOps_revoke_memory,
+    CapOps_revoke_pmp,
+    CapOps_revoke_monitor,
+    CapOps_revoke_channel,
+    CapOps_revoke_socket,
 };
 
-void Cap_ops_revoke(u64 parent)
+void CapOps_revoke(u64 parent)
 {
 	u64 pcap = Kernel_ks->ctable[parent].cap;
 	u64 type = Cap_get_type(pcap);

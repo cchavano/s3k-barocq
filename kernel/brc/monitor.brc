@@ -18,9 +18,9 @@ defn check(ks: kstate, midx: u64, pid: pid_t, check_suspended: bool) : Error::er
     Error::Success
   
 defn check_move(ks: kstate, midx: u64, src: u64, dst: u64) : Error::err_t =
-  let mon_pid = Cap_ops::cap_pid(midx) in
-  let src_pid = Cap_ops::cap_pid(src) in
-  let dst_pid = Cap_ops::cap_pid(dst) in
+  let mon_pid = CapOps::cap_pid(midx) in
+  let src_pid = CapOps::cap_pid(src) in
+  let dst_pid = CapOps::cap_pid(dst) in
   let err =
     if mon_pid != src_pid then check(ks, midx, src_pid, true)
     else Error::Success
@@ -86,10 +86,10 @@ defn cap_reg_write(ks: kstate, midx: u64, pid: pid_t, reg: reg_t, val: word_t) :
     ks.errcode <- err
 
 defn cap_read(ks: kstate, midx: u64, cidx: u64) : kstate =
-  let pid = Cap_ops::cap_pid(cidx) in
+  let pid = CapOps::cap_pid(cidx) in
   let err = check(ks, midx, pid, true) in
   if err == Error::Success then
-    let ks = Cap_ops::read(ks, cidx) in
+    let ks = CapOps::read(ks, cidx) in
     ks.errcode <- Error::Success
   else
     ks.errcode <- err
@@ -97,13 +97,13 @@ defn cap_read(ks: kstate, midx: u64, cidx: u64) : kstate =
 defn cap_move(ks: kstate, midx: u64, src: u64, dst: u64) : kstate = 
   let err = check_move(ks, midx, src, dst) in
   if err == Error::Success then
-    let ks = Cap_ops::move(ks, src, dst) in
+    let ks = CapOps::move(ks, src, dst) in
     ks.errcode <- Error::Success
   else
     ks.errcode <- err
 
 defn cap_pmp_load(ks: kstate, midx: u64, cidx: u64, slot: pmp_slot_t) : kstate =
-  let pid = Cap_ops::cap_pid(cidx) in
+  let pid = CapOps::cap_pid(cidx) in
   let err = check(ks, midx, pid, true) in
   if err == Error::Success then
     let ks = Pmp::load(ks, cidx, slot) in
@@ -112,7 +112,7 @@ defn cap_pmp_load(ks: kstate, midx: u64, cidx: u64, slot: pmp_slot_t) : kstate =
     ks.errcode <- err
 
 defn cap_pmp_unload(ks: kstate, midx: u64, cidx: u64) : kstate =
-  let pid = Cap_ops::cap_pid(cidx) in
+  let pid = CapOps::cap_pid(cidx) in
   let err = check(ks, midx, pid, true) in
   if err == Error::Success then
     let ks = Pmp::unload(ks, cidx) in
