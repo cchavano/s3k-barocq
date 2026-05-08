@@ -1,0 +1,6 @@
+#!/bin/sh
+
+rm -rf build
+
+meson setup build/kernel kernel --cross-file=cross/gcc-rv64imac.ini --optimization 2
+meson setup build/hello examples/hello --cross-file=cross/gcc-rv64imac.ini --optimization 2
