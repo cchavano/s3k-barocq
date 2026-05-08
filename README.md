@@ -31,6 +31,6 @@ Build and Run
 The following commands compile S3K and run the Hello world example in QEMU.
 
 ```bash
-./setup hello
-ninja -C build qemu
+./setup
+./hello-world
 ```
