@@ -2,17 +2,13 @@ S3K - Simple Secure Separation Kernel
 =====================================
 
 S3K is a capability-based separation kernel targetting RISC-V embedded systems.\
-This repository contains a re-implementation of S3K-v1 in the Barocq programming language.
-
-Configuration
--------------
-
-Compiler toolchain is defined in `cross/*.ini`.
+This repository contains a re-implementation of [S3Kv1](https://github.com/HAKarlsson/s3k-c) in the [Barocq programming language](https://gitlab.inria.fr/cchavano/barocq).
 
 Requirements
 ------------
 
-- [The Barocq compiler](https://gitlab.inria.fr/cchavano/barocq)
+- The build system is [Meson](https://mesonbuild.com/) + [Ninja](https://ninja-build.org/)
+- [The Barocq compiler](https://gitlab.inria.fr/cchavano/barocq/-/tree/riscv64?ref_type=heads#riscv64) compiled with CompCert-rv64-linux
 - [RISC-V GNU Toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain) 
   - We recommend that you clone the repository and build the toolchains as follows:
     ```
@@ -28,9 +24,22 @@ Requirements
 
 Build and Run
 -------------
-The following commands compile S3K and run the Hello world example in QEMU.
 
-```bash
+First, setup the project:
+
+```sh
 ./setup
+```
+To compile S3K, run the following `ninja` command:
+
+```sh
+ninja -C build/kernel
+```
+
+This command places the kernel elf file at `build/kernel/s3k.elf`.
+
+To run the Hello world example, you can use the `hello-world` script:
+
+```sh
 ./hello-world
 ```
